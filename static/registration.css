@@ -1,0 +1,121 @@
+*{
+    padding: 0;
+    margin: 0;
+    text-decoration: none;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+
+}
+
+body{
+    
+    justify-content: center;
+    align-items: center;
+    height: 120vh;
+    background:#D3D3D3;
+}
+
+.container{
+    max-width: 650px;
+    padding: 28px;
+    margin: 2% 26%;
+    border-radius: 10px;
+    overflow: hidden;
+    background:white;
+    box-shadow: 0 15px 20px rgba(0, 0, 0, 0.6);
+}
+
+h2{
+    font-size: 26px;
+    font-weight: bold;
+    text-align: left;
+    color: rgb(47, 0, 129);
+    padding-bottom: 8px;
+    border-bottom:1px solid silver;
+}
+
+.content{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 20px 0;
+
+}
+
+.input-box{
+    display: flex;
+    flex-wrap: wrap;
+    width: 50%;
+    padding-bottom: 15px;
+}
+
+.input-box:nth-child(2n){
+    justify-content: end;
+}
+
+.input-box label, .gender-title{
+    width: 95%;
+    color: rgb(47, 0, 129);
+    font-weight: bold;
+    margin: 5px;
+
+}
+
+.gender-title{
+    font-size: 16px;
+}
+
+.input-box input{
+    height: 40px;
+    width: 95%;
+    padding: 0 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    outline: none;
+}
+.input-box input:is(:focus,:valid){
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.gender-category label{
+    padding: 0 20px 0 5px;
+    font-size: 14px;
+}
+
+.gender-category{
+    color: black;
+}
+
+.gender-category label, .gender-category input{
+    cursor: pointer;
+}
+.alert p{
+    font-size: 14px;
+    font-style: italic;
+    color: black;
+    margin: 5px 0;
+    padding: 10px;
+    line-height: 1.5;
+}
+
+.button-container{
+    margin: 15px 0;
+}
+.button-container button{
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    display: block;
+    font-size: 20px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    /* background-image: linear-gradient(to right, #aa076b, #61045f); */
+    background-image: linear-gradient(to right, rgb(14, 0, 91), #c9c2c9);
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.button-container button:hover{
+    background-image: linear-gradient(to right, #c9c2c9, rgb(14, 0, 91));
+}

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Footer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='footer.css') }}">
+</head>
+<body>
+    <div class="footer">
+        <div class="footer-Section">
+            <h4>Contact Us</h4>
+            <p>
+                <i class="icon fa fa-envelope"></i> nihla@gmail.com
+            </p>
+            <p>
+                <i class="icon fa fa-phone"></i> 011-6253456
+            </p>
+            <p>
+                <i class="icon fa fa-map-marker"></i> Horizon Campus.
+            </p>
+        </div>
+
+        <div class="footer-Section">
+            <h4>Quick Links</h4>
+            <ul>
+                <li>
+                    <a href="#home" onclick="scrollToSection('home', event)" style="color: blue;">Home</a>
+                </li>
+                <li>
+                    <a href="#contact" onclick="scrollToSection('contact', event)" style="color: blue;">Contact</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="footer-Section">
+            <h4>Follow us</h4>
+            <div>
+                <a href="#" target="_blank" rel="noopener noreferrer">
+                    <i class="fab fa-facebook"></i>
+                </a>
+                <a href="#" target="_blank" rel="noopener noreferrer">
+                    <i class="fab fa-linkedin"></i>
+                </a>
+                <a href="#" target="_blank" rel="noopener noreferrer">
+                    <i class="fab fa-instagram"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="footer-Section">
+            <p>&copy; DCCMS. All rights reserved.</p>
+        </div>
+    </div>
+
+    <script> // scrolling function for the footer quicklinks such as home and contact.
+        const scrollToSection = (id, event) => {
+            event.preventDefault(); 
+            const section = document.getElementById(id);
+            section.scrollIntoView({ behavior: "smooth" });
+        };
+    </script>
+</body>
+</html>

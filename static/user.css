@@ -1,0 +1,94 @@
+/* * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    text-decoration: none;
+    background: transparent;
+    font-family: "Poppins", sans-serif;
+    
+}
+
+body {
+    background-color: #D3D3D3;
+    color: black;
+    overflow: hidden;
+    object-fit: cover;
+    overflow-y: scroll;
+}
+
+
+.container {
+    margin-top: 50px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1{
+    text-align: center;
+    font-weight:1000;
+}
+
+.user-table {
+    width: 100%;
+}
+
+.user-table th,
+.user-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.user-table th {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.user-row:hover {
+    background-color: #f5f5f5;
+} */
+
+
+
+
+
+
+/* users.css */
+
+/* This file contains styles for the user list page */
+
+.user-page .user-container {
+    margin-top: 50px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.user-page h1 {
+    text-align: center;
+    font-weight: 1000;
+}
+
+.user-page .user-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.user-page .user-table th,
+.user-page .user-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.user-page .user-table th {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.user-page .user-row:hover {
+    background-color: #f5f5f5;
+}
