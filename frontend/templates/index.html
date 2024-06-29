@@ -38,7 +38,7 @@
             <li>
                 <div class="icon-link">
                 <a href="#">
-                    <i class='bx bxs-briefcase'></i>
+                    <i class='bx bxs-user-circle'></i>
                     <span class="link-name">Lawyers</span>
                 </a>
                 <i class="bx bxs-chevron-down arrow" ></i>
@@ -66,10 +66,18 @@
 
             </li>
             <li>
+                <div class="icon-link">
                 <a href="#">
                     <i class='bx bxs-group'></i>
                     <span class="link-name">Users</span>
                 </a>
+                <i class="bx bxs-chevron-down arrow" ></i>
+                </div>
+                <ul class="sub-menu">
+                    <li><a class="link-name" href="#">Users</a></li>
+                    <li><a href="#">Add User</a></li>
+                    <li><a href="#">View User</a></li>  
+                </ul>
             </li>
             <li>
                 <div class="icon-link">
@@ -81,12 +89,17 @@
                 </div>
                 <ul class="sub-menu">
                     <li><a class="link-name" href="#">Cases</a></li>
-                    <li><a href="#">Add Case</a></li>
-                    <li><a href="#">Solved Case</a></li>
-                    <li><a href="#">Filed Case</a></li>
+                    <li><a href="cases.html" id="add-case">Add Case</a></li>
                     <li><a href="#">Unfiled Case</a></li>
+                    <li><a href="#">Filed Case</a></li>
+                    <li><a href="#">Solved Case</a></li>    
                 </ul>
-
+            </li>
+            <li>
+                <a href="#">
+                    <i class='bx bxs-calendar-event'></i>
+                    <span class="link-name">Calendar</span>
+                </a>
             </li>
             <li>
                 <a href="#">
@@ -115,9 +128,21 @@
             </ul>
         </div>
         <main>
-            
-                
+            <div id="content">
+                <!-- Content from cases.html will be loaded here -->
+            </div>
         </main>
+        <script>
+            document.getElementById('add-case').addEventListener('click', function(event) {
+                event.preventDefault();
+                fetch('/cases')
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById('content').innerHTML = data;
+                    })
+                    .catch(error => console.error('Error loading the page:', error));
+            });
+        </script>
 
     </body>
 </html>
