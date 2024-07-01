@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='registration.css') }}" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      $("form").submit(function (event) {
+        event.preventDefault();
+
+        var password = $("#password").val();
+        var confirmPassword = $("#confirm-password").val();
+
+        var strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/;
+        if (!strongRegex.test(password)) {
+          $(".alert").html('<div class="alert alert-danger" role="alert">Password must be at least 8 characters long and contain at least one lowercase letter, one uppercase letter, one numeric digit, and one special character.</div>');
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          $(".alert").html('<div class="alert alert-danger" role="alert">Password and Confirm Password do not match!</div>');
+          return;
+        }
+
+        $(".alert").html("");
+
+        $.ajax({
+          type: "POST",
+          url: "/register",
+          data: $(this).serialize(),
+          success: function (response) {
+            if (response.status === "success") {
+              $(".alert").html('<div class="alert alert-success" role="alert">You have successfully registered your account!</div>');
+              $("form")[0].reset();
+            } else {
+              $(".alert").html('<div class="alert alert-danger" role="alert">' + response.message + "</div>");
+            }
+          },
+          error: function (err) {
+            console.error("Error:", err);
+          },
+        });
+      });
+    });
+  </script>
+</head>
+<body>
+  <h1 class="heading">Create New User</h1>
+  <div class="container">
+    <form action="/register" method="POST">
+      <div class="row">
+        <div class="col-25">
+          <label for="name">Full Name</label>
+        </div>
+        <div class="col-75">
+          <input type="text" id="name" name="name" placeholder="Enter your Full Name" required>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-25">
+          <label for="username">Username</label>
+        </div>
+        <div class="col-75">
+          <input type="text" id="username" name="username" placeholder="Enter username" required>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-25">
+          <label for="email">Email</label>
+        </div>
+        <div class="col-75">
+          <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-25">
+          <label for="phone">Phone Number</label>
+        </div>
+        <div class="col-75">
+          <input type="tel" id="phone" name="phone" placeholder="Enter your mobile phone number" required>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-25">
+          <label for="password">Password</label>
+        </div>
+        <div class="col-75">
+          <input type="password" id="password" name="password" placeholder="Enter new password" required>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-25">
+          <label for="confirm-password">Confirm password</label>
+        </div>
+        <div class="col-75">
+          <input type="password" id="confirm-password" name="confirmPassword" placeholder="Confirm your password" required>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-25">
+          <label for="role">User Role</label>
+        </div>
+        <div class="col-75">
+          <select name="role" id="role" required>
+            <option value="" disabled selected>Select Role</option>
+            <option value="Judge">Judge</option>
+            <option value="Lawyer">Lawyer</option>
+            <option value="Public">Public</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-25">
+          <label>Gender</label>
+        </div>
+        <div class="col-75">
+          <div class="gender-category">
+            <input type="radio" name="gender" id="male" value="male" required />
+            <label for="male">Male</label>
+            <input type="radio" name="gender" id="female" value="female" />
+            <label for="female">Female</label>
+            <input type="radio" name="gender" id="other" value="other" />
+            <label for="other">Other</label>
+          </div>
+        </div>
+      </div>
+     
+      <div class="button-container">
+        <input type="submit" value="Register">
+      </div>
+    </form>
+  </div>
+</body>
+</html>

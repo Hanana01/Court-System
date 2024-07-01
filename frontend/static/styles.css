@@ -1,0 +1,90 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  text-decoration: none;
+  background: transparent;
+  font-family: "Poppins", sans-serif;
+  
+}
+
+body {
+  background: #D3D3D3;
+  color: white;
+  overflow: hidden;
+  object-fit: cover;
+  overflow-y: scroll;
+  margin: 0;
+  padding: 0;
+  font-size: 1.2rem;
+}
+
+
+
+.container {
+    width: 80%;
+    margin: 0 auto;
+    object-fit: cover;
+    
+    
+}
+
+h1{
+  font-size: 3rem;
+}
+
+.section {
+  
+    padding: 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    background-color: white;
+    color: #000;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+.hello{
+  font-size: 2rem;
+}
+.intro_name{
+  font-size: 1.5rem;
+  font-weight: 1000;
+  color: gray;
+}
+.about_services-section {
+    display: flex;
+    padding: 20px 50px;
+    
+  }
+  
+  .about_services-image {
+    flex: 1;
+  }
+  .about_servicesImage{
+    width: 350px; 
+    height: 400px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 1.2);
+
+  }
+  .about_services-content {
+    flex: 1;
+    padding: 0 20px; 
+  }
+  
+
+ 
+   .slider-container {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .slide-item {
+    float: left;
+  }
+  
+  .slide-item img {
+    width: 100%;
+    height: auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 1);
+  }
+  
