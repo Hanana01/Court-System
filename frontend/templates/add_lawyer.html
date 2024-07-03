@@ -1,0 +1,78 @@
+<!-- My CSS -->
+<link rel="stylesheet" href="../static/cases.css">
+
+<!-- Content for Cases category -->
+<main>
+<h1 class="heading"> ADD LAWYERS</h1>
+
+        <div class="container">
+                <form action="/action_page.php">
+                    <div class="row">
+                        <div class="col-25">
+                          <label for="caseno">Case Title</label>
+                        </div>
+                        <div class="col-75">
+                          <input type="text" id="case_title" name="case_title" placeholder="Enter case title...">
+                        </div>
+                      </div>
+                <div class="row">
+                  <div class="col-25">
+                    <label for="caseno">Case Number</label>
+                  </div>
+                  <div class="col-75">
+                    <input type="text" id="caseno" name="caseno" placeholder="Enter case number...">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-25">
+                    <label for="date">Date</label>
+                  </div>
+                  <div class="col-75">
+                    <input type="date" id="date" name="date" >
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-25">
+                    <label for="casetype">Case Type</label>
+                  </div>
+                  <div class="col-75">
+                    <select id="casetype" name="casetype">
+                      <option value="" >-- Select case type --</option>
+                      <option value="Type 1">Type 1</option>
+                      <option value="Type 2">Type 2</option>
+                      <option value="Type 3">Type 3</option>
+                    </select>
+                  </div>
+                </div>
+                    <div class="row">
+                        <div class="col-25">
+                          <label for="caseno">Plaintiff Name</label>
+                        </div>
+                        <div class="col-75">
+                          <input type="text" id="plaintiff" name="plaintiff" placeholder="Enter plaintiff name...">
+                        </div>
+                      </div> 
+                      <div class="row">
+                        <div class="col-25">
+                          <label for="caseno">Defendant Name</label>
+                        </div>
+                        <div class="col-75">
+                          <input type="text" id="defendant" name="defendant" placeholder="Enter defendant name...">
+                        </div>
+                      </div> 
+                <div class="row">
+                  <div class="col-25">
+                    <label for="description">Description</label>
+                  </div>
+                  <div class="col-75">
+                    <textarea id="description" name="description" placeholder="Write something..." style="height:100px"></textarea>
+                  </div>
+                </div>
+                <br>
+                <div class="row">
+                  <input type="submit" value="Add Case">
+                </div>
+                </form>
+              </div>
+</main>
+

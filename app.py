@@ -30,8 +30,12 @@ def sidebar():
     return render_template('sidebar.html')
 
 @app.route('/index_admin/add_case')
-def cases():
+def addCases():
     return render_template('add_case.html')
+
+@app.route('/index_admin/add_lawyer')
+def addLawyers():
+    return render_template('add_lawyer.html')
 
 # Run the app
 if __name__ == '__main__':
