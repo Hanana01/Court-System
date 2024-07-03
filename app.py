@@ -3,9 +3,9 @@ from flask import Flask, render_template, Blueprint
 # Create a blueprint for the routes
 routes_bp = Blueprint('routes', __name__, template_folder="frontend/templates", static_folder="frontend/static")
 
-@routes_bp.route('/')
+@routes_bp.route('/index_admin')
 def dashboard():
-    return render_template('index.html')
+    return render_template('index_admin.html')
 
 # Initialize the Flask app
 app = Flask(__name__, template_folder="frontend/templates", static_folder="frontend/static")
@@ -29,9 +29,9 @@ def unfiled():
 def sidebar():
     return render_template('sidebar.html')
 
-@app.route('/cases')
+@app.route('/index_admin/add_case')
 def cases():
-    return render_template('cases.html')
+    return render_template('add_case.html')
 
 # Run the app
 if __name__ == '__main__':
