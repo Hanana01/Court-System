@@ -56,16 +56,16 @@ body {
   .heading {
     text-align: center;
     font-size: 30px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
   }
   
   .container {
     border-radius: 10px;
     background: var(--light);
     padding: 20px;
-    margin-top: 36px;
+    margin-top: 30px;
     width: 1100px;
-    margin-left: 275px;
+    margin-left: 265px;
     
   }
 
@@ -81,19 +81,12 @@ body {
   margin-top: 6px;
 }
 
-input[type=text], select, textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  resize: vertical;
-}
-
-input[type=date] {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+input[type=text], input[type=email], input[type=date], input[type=password], select, textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: vertical;
 }
 
 label {
@@ -119,4 +112,14 @@ input[type=submit]:hover {
   content: "";
   display: table;
   clear: both;
+}
+
+.gender-options label {
+  display: inline-block;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+input[type=radio] {
+  margin-right: 5px;
 }

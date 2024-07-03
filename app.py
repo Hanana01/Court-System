@@ -37,6 +37,14 @@ def addCases():
 def addLawyers():
     return render_template('add_lawyer.html')
 
+@app.route('/index_admin/add_judge')
+def addJudges():
+    return render_template('add_judge.html')
+
+@app.route('/index_admin/add_user')
+def addUsers():
+    return render_template('add_user.html')
+
 # Run the app
 if __name__ == '__main__':
     app.run(debug=True)
