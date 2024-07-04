@@ -45,6 +45,10 @@ def addJudges():
 def addUsers():
     return render_template('add_user.html')
 
+@app.route('/index_admin/dashboard')
+def adminDashboard():
+    return render_template('admin_dashboard.html')
+
 # Run the app
 if __name__ == '__main__':
     app.run(debug=True)
