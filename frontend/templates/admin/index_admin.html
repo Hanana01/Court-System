@@ -144,63 +144,27 @@
     
             document.getElementById('add-case').addEventListener('click', function(event) {
                 event.preventDefault();
-                loadPage('add_case', '/index_admin/add_case');
+                loadPage('add_case', '/admin/add_case');
             });
     
             document.getElementById('add-judge').addEventListener('click', function(event) {
                 event.preventDefault();
-                loadPage('add_judge', '/index_admin/add_judge');
+                loadPage('add_judge', '/admin/add_judge');
             });
     
             document.getElementById('add-lawyer').addEventListener('click', function(event) {
                 event.preventDefault();
-                loadPage('add_lawyer', '/index_admin/add_lawyer');
+                loadPage('add_lawyer', '/admin/add_lawyer');
             });
     
             document.getElementById('add-user').addEventListener('click', function(event) {
                 event.preventDefault();
-                loadPage('add_user', '/index_admin/add_user');
+                loadPage('add_user', '/admin/add_user');
             });
 
             document.getElementById('dashboard').addEventListener('click', function(event) {
                 event.preventDefault();
-                loadPage('dashboard', '/index_admin/dashboard');
-            });
-    
-            window.addEventListener('popstate', function(event) {
-                if (event.state) {
-                    let page = event.state.page;
-                    let url = '';
-    
-                    switch (page) {
-                        case 'add_case':
-                            url = '/index_admin/add_case';
-                            break;
-                        case 'add_judge':
-                            url = '/index_admin/add_judge';
-                            break;
-                        case 'add_lawyer':
-                            url = '/index_admin/add_lawyer';
-                            break;
-                        case 'add_user':
-                            url = '/index_admin/add_user';
-                            break;
-                        case 'dashboard':
-                            url = '/index_admin/dashboard';
-                            break;
-                        default:
-                            url = '';
-                    }
-    
-                    if (url) {
-                        fetch(url)
-                            .then(response => response.text())
-                            .then(data => {
-                                document.getElementById('content').innerHTML = data;
-                            })
-                            .catch(error => console.error('Error loading the page:', error));
-                    }
-                }
+                loadPage('dashboard', '/admin/dashboard');
             });
 
         </script>
