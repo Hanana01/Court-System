@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request, flash, jsonify
 from extensions import mysql
 
 admin_bp = Blueprint('admin', __name__, template_folder="../../frontend/templates/admin")
@@ -11,8 +11,30 @@ def admin_index():
 def admin_addCase():
     return render_template('add_case.html')
 
-@admin_bp.route('/add_user')
+@admin_bp.route('/add_user', methods=['GET', 'POST'])
 def admin_addUser():
+    if request.method == 'POST':
+        fullname = request.form.get('fullname')
+        username = request.form.get('username')
+        password = request.form.get('password')
+        address = request.form.get('address')
+        contact = request.form.get('contact')
+        email = request.form.get('email')
+        nic = request.form.get('nic')
+        gender = request.form.get('gender')
+
+        try:
+            cursor = mysql.connection.cursor()
+            cursor.execute('''
+                INSERT INTO users (fullname, username, password, address, contact, email, nic, gender)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ''', (fullname, username, password, address, contact, email, nic, gender))
+            mysql.connection.commit()
+            cursor.close()
+            return jsonify({'status': 'success', 'message': 'User added successfully!'})
+        except Exception as e:
+            return jsonify({'status': 'error', 'message': str(e)})
+
     return render_template('add_user.html')
 
 @admin_bp.route('/add_lawyer')

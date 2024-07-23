@@ -1,82 +1,113 @@
-<!-- My CSS -->
-<link rel="stylesheet" href="../static/styles/admin/add.css"> 
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCCMS - Add User</title>
+    <link rel="stylesheet" href="../static/styles/admin/add.css">
+</head>
+<body>
 <main>
-        
-            <h1 class="heading">CREATE NEW USER</h1>
-            <div class="container">
-                <form action="/action_page.php">
-                    <div class="row">
-                        <div class="col-25">
-                            <label for="fullname">Full Name</label>
-                        </div>
-                        <div class="col-75">
-                            <input type="text" id="fullname" name="fullname" placeholder="Enter full name...">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-25">
-                            <label for="username">Username</label>
-                        </div>
-                        <div class="col-75">
-                            <input type="text" id="username" name="username" placeholder="Enter username...">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-25">
-                            <label for="password">Password</label>
-                        </div>
-                        <div class="col-75">
-                            <input type="password" id="password" name="password" placeholder="Enter password...">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-25">
-                            <label for="address">Address</label>
-                        </div>
-                        <div class="col-75">
-                            <input type="text" id="address" name="address" placeholder="Enter address...">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-25">
-                            <label for="contact">Contact</label>
-                        </div>
-                        <div class="col-75">
-                            <input type="text" id="contact" name="contact" placeholder="Enter contact number...">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-25">
-                            <label for="email">Email</label>
-                        </div>
-                        <div class="col-75">
-                            <input type="email" id="email" name="email" placeholder="Enter email...">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-25">
-                            <label for="nic">NIC</label>
-                        </div>
-                        <div class="col-75">
-                            <input type="text" id="nic" name="nic" placeholder="Enter nic...">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-25">
-                            <label for="gender">Gender</label>
-                        </div>
-                        <div class="col-75 gender-options">
-                            <label><input type="radio" name="gender" value="male"> Male</label>
-                            <label><input type="radio" name="gender" value="female"> Female</label>
-                            <label><input type="radio" name="gender" value="other"> Other</label>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <input type="submit" value="Add User">
-                    </div>
-                </form>
+    <h1 class="heading">CREATE NEW USER</h1>
+
+    <div class="container">
+        <form id="addUserForm" method="post">
+            <div class="row">
+                <div class="col-25">
+                    <label for="fullname">Full Name</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="fullname" name="fullname" placeholder="Enter full name...">
+                </div>
             </div>
+            <div class="row">
+                <div class="col-25">
+                    <label for="username">Username</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="username" name="username" placeholder="Enter username...">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-25">
+                    <label for="password">Password</label>
+                </div>
+                <div class="col-75">
+                    <input type="password" id="password" name="password" placeholder="Enter password...">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-25">
+                    <label for="address">Address</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="address" name="address" placeholder="Enter address...">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-25">
+                    <label for="contact">Contact</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="contact" name="contact" placeholder="Enter contact number...">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-25">
+                    <label for="email">Email</label>
+                </div>
+                <div class="col-75">
+                    <input type="email" id="email" name="email" placeholder="Enter email...">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-25">
+                    <label for="nic">NIC</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="nic" name="nic" placeholder="Enter nic...">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-25">
+                    <label for="gender">Gender</label>
+                </div>
+                <div class="col-75 gender-options">
+                    <label><input type="radio" name="gender" value="male"> Male</label>
+                    <label><input type="radio" name="gender" value="female"> Female</label>
+                    <label><input type="radio" name="gender" value="other"> Other</label>
+                </div>
+            </div>
+            <div class="row">
+                <input type="submit" value="Add User">
+            </div>
+        </form>
+    </div>
+</main>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('addUserForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent default form submission
 
-    </main>
-
+        const formData = new FormData(this);
+        fetch('/admin/add_user', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Response Data:', data); // Log the response data to check what you get
+            if (data.status === 'success') {
+                alert(data.message); // Show success message
+                // Optionally, you can reload the page or redirect
+                window.location.href = '/admin/add_user'; // Reload the page or redirect
+            } else {
+                alert(`Error: ${data.message}`);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+});
+</script>
+</body>
+</html>

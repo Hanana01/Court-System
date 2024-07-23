@@ -1,78 +1,79 @@
-<!-- My CSS -->
+<!-- Link to CSS for styling -->
 <link rel="stylesheet" href="../static/styles/admin/add.css">
 
-<!-- Content for Cases category -->
 <main>
-<h1 class="heading"> CREATE NEW CASE</h1>
-
-        <div class="container">
-                <form action="/action_page.php">
-                    <div class="row">
-                        <div class="col-25">
-                          <label for="caseno">Case Title</label>
-                        </div>
-                        <div class="col-75">
-                          <input type="text" id="case_title" name="case_title" placeholder="Enter case title...">
-                        </div>
-                      </div>
-                <div class="row">
-                  <div class="col-25">
-                    <label for="caseno">Case Number</label>
-                  </div>
-                  <div class="col-75">
-                    <input type="text" id="caseno" name="caseno" placeholder="Enter case number...">
-                  </div>
+    <h1 class="heading">CREATE NEW USER</h1>
+    <div class="container">
+        <form action="/admin/add_user" method="POST">
+            <div class="row">
+                <div class="col-25">
+                    <label for="fullname">Full Name</label>
                 </div>
-                <div class="row">
-                  <div class="col-25">
-                    <label for="date">Date</label>
-                  </div>
-                  <div class="col-75">
-                    <input type="date" id="date" name="date" >
-                  </div>
+                <div class="col-75">
+                    <input type="text" id="fullname" name="fullname" placeholder="Enter full name..." required>
                 </div>
-                <div class="row">
-                  <div class="col-25">
-                    <label for="casetype">Case Type</label>
-                  </div>
-                  <div class="col-75">
-                    <select id="casetype" name="casetype">
-                      <option value="" >-- Select case type --</option>
-                      <option value="Type 1">Type 1</option>
-                      <option value="Type 2">Type 2</option>
-                      <option value="Type 3">Type 3</option>
-                    </select>
-                  </div>
+            </div>
+            <div class="row">
+                <div class="col-25">
+                    <label for="username">Username</label>
                 </div>
-                    <div class="row">
-                        <div class="col-25">
-                          <label for="caseno">Plaintiff Name</label>
-                        </div>
-                        <div class="col-75">
-                          <input type="text" id="plaintiff" name="plaintiff" placeholder="Enter plaintiff name...">
-                        </div>
-                      </div> 
-                      <div class="row">
-                        <div class="col-25">
-                          <label for="caseno">Defendant Name</label>
-                        </div>
-                        <div class="col-75">
-                          <input type="text" id="defendant" name="defendant" placeholder="Enter defendant name...">
-                        </div>
-                      </div> 
-                <div class="row">
-                  <div class="col-25">
-                    <label for="description">Description</label>
-                  </div>
-                  <div class="col-75">
-                    <textarea id="description" name="description" placeholder="Write something..." style="height:100px"></textarea>
-                  </div>
+                <div class="col-75">
+                    <input type="text" id="username" name="username" placeholder="Enter username..." required>
                 </div>
-                <br>
-                <div class="row">
-                  <input type="submit" value="Add Case">
+            </div>
+            <div class="row">
+                <div class="col-25">
+                    <label for="password">Password</label>
                 </div>
-                </form>
-              </div>
+                <div class="col-75">
+                    <input type="password" id="password" name="password" placeholder="Enter password..." required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-25">
+                    <label for="address">Address</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="address" name="address" placeholder="Enter address..." required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-25">
+                    <label for="contact">Contact</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="contact" name="contact" placeholder="Enter contact number..." required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-25">
+                    <label for="email">Email</label>
+                </div>
+                <div class="col-75">
+                    <input type="email" id="email" name="email" placeholder="Enter email..." required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-25">
+                    <label for="nic">NIC</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="nic" name="nic" placeholder="Enter NIC..." required>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-25">
+                    <label for="gender">Gender</label>
+                </div>
+                <div class="col-75 gender-options">
+                    <label><input type="radio" name="gender" value="male" required> Male</label>
+                    <label><input type="radio" name="gender" value="female"> Female</label>
+                    <label><input type="radio" name="gender" value="other"> Other</label>
+                </div>
+            </div>
+            <div class="row">
+                <input type="submit" value="Add User">
+            </div>
+        </form>
+    </div>
 </main>
-
