@@ -1,0 +1,104 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+#navbar {
+  background-color: rgb(14, 0, 91);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%; /* Ensure navbar spans full width */
+  padding: 20px;
+  box-shadow: 0 5px 5px rgba(0, 0, 0, 0.6);
+  position: relative;
+  z-index: 1000;
+  border-radius: 5px 5px; /* No rounded corners */
+}
+
+
+.logo {
+  object-fit: cover;
+  height: 4rem;
+  width: 4rem;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 15px 20px rgba(0, 0, 0, 0.6);
+}
+
+.logo:hover {
+  box-shadow: 0 0 8px rgb(255, 255, 255);
+  transform: scale(1.1);
+  transition: transform 0.3s ease;
+}
+
+.button1 {
+  background-image: linear-gradient(to right, #5e4bdc, #c9c2c9);
+  color: #000000;
+  border: none;
+  box-shadow: 0 0 5px rgb(0, 0, 0);
+  margin-left: 1rem;
+  border-radius: 20px;
+  padding: 10px 30px;
+  cursor: pointer;
+  font-weight: 1000;
+}
+
+.button1:hover {
+  background-image: linear-gradient(to right, #c9c2c9, #5e4bdc);
+  transform: scale(1.05);
+  transition: transform 0.3s ease;
+  box-shadow: 0 0 8px rgb(0, 0, 0);
+}
+
+.Slice1, .Slice2, .Slice3, .Slice4, .Slice5 {
+  text-align: center;
+  color: gray;
+  letter-spacing: -2px;
+}
+
+.Slice1 { font-size: 50px; font-weight: 1000; }
+.Slice2, .Slice4 { font-size: 30px; font-weight: 100; }
+.Slice3 { font-size: 30px; font-weight: 1000; }
+.Slice5 { font-size: 30px; font-weight: 750; }
+
+.desktopMenu {
+  color: whitesmoke;
+  display: flex; /* Ensure menu items are horizontally aligned */
+  gap: 1rem; /* Add spacing between items */
+}
+
+.desktopMenuList {
+  margin: 1rem;
+  cursor: pointer;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.desktopMenuList::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  transform: translateX(-50%);
+  width: 0;
+  height: 3px;
+  background-color: blanchedalmond;
+  transition: width 0.3s ease;
+}
+
+.desktopMenuList:hover::after {
+  width: 100%;
+}
+
+.desktopMenu a i {
+  margin: 8px;
+  justify-items: center;
+}

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheduled Events</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="my-4">Scheduled Events</h1>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="events-table-body">
+                <!-- Events will be inserted here by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Edit Event Modal -->
+    <div class="modal fade" id="editEventModal" tabindex="-1" role="dialog" aria-labelledby="editEventModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editEventModalLabel">Edit Event</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editEventForm">
+                        <input type="hidden" id="editEventId">
+                        <div class="form-group">
+                            <label for="editEventTitle">Title</label>
+                            <input type="text" class="form-control" id="editEventTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editEventDate">Date</label>
+                            <input type="date" class="form-control" id="editEventDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editEventTime">Time</label>
+                            <input type="time" class="form-control" id="editEventTime" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            function loadEvents() {
+                $.ajax({
+                    url: '/judge/api/events',
+                    method: 'GET',
+                    success: function(events) {
+                        var tableBody = $('#events-table-body');
+                        tableBody.empty(); // Clear any existing content
+                        events.forEach(function(event) {
+                            var eventDate = new Date(event.event_date).toDateString();
+                            var row = '<tr>' +
+                                '<td>' + event.title + '</td>' +
+                                '<td>' + eventDate + '</td>' +
+                                '<td>' + event.event_time + '</td>' +
+                                '<td>' + event.status + '</td>' +
+                                '<td>' ;
+                                    if (event.status !== 'finished') {
+                                row += '<button class="btn btn-primary btn-sm edit-btn" data-id="' + event.id + '">Edit</button> ' +
+                                       '<button class="btn btn-success btn-sm finish-btn" data-id="' + event.id + '">Finish</button> ';
+                            }
+                            row += '<button class="btn btn-danger btn-sm delete-btn" data-id="' + event.id + '">Delete</button>' +
+                                   '</td>' +
+                                   '</tr>';
+                            tableBody.append(row);
+                        });
+                    },
+                    error: function() {
+                        alert('Failed to load events.');
+                    }
+                });
+            }
+
+            loadEvents();
+
+            // Event listener for the edit button
+    $(document).on('click', '.edit-btn', function() {
+        var eventId = $(this).data('id');
+        $.ajax({
+            url: '/judge/api/events/' + eventId,
+            method: 'GET',
+            success: function(event) {
+                $('#editEventId').val(event.id);
+                $('#editEventTitle').val(event.title);
+                $('#editEventDate').val(event.event_date);
+                $('#editEventTime').val(event.event_time);
+                $('#editEventModal').modal('show');
+            },
+            error: function() {
+                alert('Failed to load event details.');
+            }
+        });
+    });
+
+    // Save changes when the form is submitted
+    $('#editEventForm').submit(function(event) {
+        event.preventDefault();
+        var eventId = $('#editEventId').val();
+        var updatedEvent = {
+            title: $('#editEventTitle').val(),
+            event_date: $('#editEventDate').val(),
+            event_time: $('#editEventTime').val()
+        };
+
+        $.ajax({
+            url: '/judge/api/events/' + eventId,
+            method: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify(updatedEvent),
+            success: function(response) {
+                $('#editEventModal').modal('hide');
+                loadEvents();
+                alert('Event updated successfully');
+            },
+            error: function() {
+                alert('Failed to update event.');
+            }
+        });
+    });
+
+            // Mark event as finished
+            $(document).on('click', '.finish-btn', function() {
+                var eventId = $(this).data('id');
+                $.ajax({
+                    url: '/judge/api/events/' + eventId,
+                    method: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ status: 'finished' }),
+                    success: function(response) {
+                        alert('Event marked as finished');
+                        loadEvents();
+                    },
+                    error: function() {
+                        alert('Failed to update event status.');
+                    }
+                });
+            });
+
+            // Delete event
+            $(document).on('click', '.delete-btn', function() {
+                var eventId = $(this).data('id');
+                if (confirm('Are you sure you want to delete this event?')) {
+                    $.ajax({
+                        url: '/judge/api/events/' + eventId,
+                        method: 'DELETE',
+                        success: function(response) {
+                            alert('Event deleted successfully');
+                            loadEvents();
+                        },
+                        error: function() {
+                            alert('Failed to delete event.');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -9,7 +9,7 @@
 <body>
 <main>
     <h1 class="heading">CREATE NEW USER</h1>
-
+    <div id="responseMessage" class="response-message"></div>
     <div class="container">
         <form id="addUserForm" method="post">
             <div class="row">
@@ -96,18 +96,27 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-            console.log('Response Data:', data); // Log the response data to check what you get
+            console.log('Response Data:', data); // Log response data for debugging
             if (data.status === 'success') {
-                alert(data.message); // Show success message
-                // Optionally, you can reload the page or redirect
-                window.location.href = '/admin/add_user'; // Reload the page or redirect
+                // Display success message
+                document.getElementById('responseMessage').innerText = data.message;
+                document.getElementById('responseMessage').style.color = 'green';
+                // Optionally, clear the form fields
+                document.getElementById('addUserForm').reset();
             } else {
-                alert(`Error: ${data.message}`);
+                // Display error message
+                document.getElementById('responseMessage').innerText = `Error: ${data.message}`;
+                document.getElementById('responseMessage').style.color = 'red';
             }
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('responseMessage').innerText = 'An error occurred. Please try again.';
+            document.getElementById('responseMessage').style.color = 'red';
+        });
     });
 });
+
 </script>
 </body>
 </html>

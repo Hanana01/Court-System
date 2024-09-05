@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Judge Calendar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.27.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
+</head>
+<body>
+    <button id="view-scheduled-events" onclick="window.location.href='/judge/scheduled-events'">View Scheduled Events</button>
+    <div id="calendar"></div>
+
+    <script>
+        $(document).ready(function() {
+            $('#calendar').fullCalendar({
+                events: function(start, end, timezone, callback) {
+                    $.ajax({
+                        url: '/judge/api/events',
+                        method: 'GET',
+                        success: function(events) {
+                            // Process events and assign color based on status
+                            events.forEach(event => {
+                                event.color = event.status === 'finished' ? 'green' : 'blue';
+                            });
+                            callback(events);
+                        },
+                        error: function() {
+                            alert('Failed to load events.');
+                        }
+                    });
+                },
+                selectable: true,
+                selectHelper: true,
+                select: function(start, end) {
+                    var title = prompt('Event Title:');
+                    var time = prompt('Event Time (HH:MM):');
+                    if (title && time) {
+                        // Validate time format HH:MM
+                        var timePattern = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+                        if (!timePattern.test(time)) {
+                            alert('Invalid time format. Please enter time as HH:MM.');
+                            $('#calendar').fullCalendar('unselect');
+                            return;
+                        }
+                        var startDateTime = moment(start).format('YYYY-MM-DD') + 'T' + time + ':00';
+                        var eventData = {
+                            title: title,
+                            start: startDateTime,
+                            end: startDateTime, // same start and end time for simplicity
+                            color: 'blue' // Default color for new events
+                        };
+                        $('#calendar').fullCalendar('renderEvent', eventData, true); // stick? = true
+
+                        // Send data to server
+                        $.ajax({
+                            url: '/judge/api/events',
+                            method: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({
+                                title: title,
+                                event_date: moment(start).format('YYYY-MM-DD'),
+                                event_time: time,
+                                judge_id: 1, // Replace with dynamic judge ID
+                                status: 'scheduled'
+                            }),
+                            success: function(response) {
+                                alert('Event created successfully');
+                            },
+                            error: function(error) {
+                                alert('Error creating event');
+                                console.log('Error response:', error.responseText);  // Debugging: Log error response
+                            }
+                        });
+                    }
+                    $('#calendar').fullCalendar('unselect');
+                },
+                editable: true,
+                eventClick: function(event) {
+                    if (event.status !== 'finished') {
+                        var update = confirm('Mark this event as finished?');
+                        if (update) {
+                            $.ajax({
+                                url: '/judge/api/events/' + event.id,
+                                method: 'PUT',
+                                contentType: 'application/json',
+                                data: JSON.stringify({ status: 'finished' }),
+                                success: function(response) {
+                                    alert('Event updated successfully');
+                                    event.color = 'green'; // Change color for finished events
+                                    event.status = 'finished'; // Update event status
+                                    $('#calendar').fullCalendar('updateEvent', event);
+                                },
+                                error: function(error) {
+                                    alert('Error updating event');
+                                    console.log('Error response:', error.responseText);  // Debugging: Log error response
+                                }
+                            });
+                        }
+                    }
+                },
+                eventRender: function(event, element) {
+                    // Customize event display to prevent duplicate titles
+                    element.find('.fc-title').html(event.start.format('HH:mm') + ' ' + event.title);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

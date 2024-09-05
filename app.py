@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from backend.user.routes import user_bp
 from backend.admin.routes import admin_bp
 from backend.lawyer.routes import lawyer_bp
@@ -24,6 +24,18 @@ app.register_blueprint(user_bp, url_prefix='/user')
 app.register_blueprint(admin_bp, url_prefix='/admin')
 app.register_blueprint(lawyer_bp, url_prefix='/lawyer')
 app.register_blueprint(judge_bp, url_prefix='/judge')
+
+@app.route('/')
+def landing_page():
+    return render_template('landingPage.html')
+
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
+@app.route('/register')
+def register():
+    return render_template('registration.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
