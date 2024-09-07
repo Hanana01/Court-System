@@ -1,0 +1,67 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-color: #f5f6fa;
+    color: #333;
+}
+
+/* Styling for the Container */
+.container1 {
+    margin-top: 80px;
+    background: white;
+    margin-left: 265px; /* Adjusted for the sidebar */
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: calc(100% - 265px); /* Adjust container width to fit next to the sidebar */
+    overflow-x: auto; /* Ensure horizontal scrolling if content overflows */
+}
+
+/* Heading Styling */
+h1.my-4 {
+    font-size: 2.5rem;
+    color: #000000;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+/* Button Styling */
+#view-scheduled-events {
+    display: block;
+    margin: 0 auto 20px auto;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#view-scheduled-events:hover {
+    background-color: #0056b3;
+}
+
+/* FullCalendar Styling Overrides */
+#calendar {
+    margin-top: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container1 {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px;
+    }
+
+    h1.my-4 {
+        font-size: 2rem;
+    }
+}

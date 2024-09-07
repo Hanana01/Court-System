@@ -3,12 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scheduled Events</title>
+    <link rel="icon" href="../static/images/favicon.ico" type="image/x-icon">
+    <title>DCCMS - Scheduled Events</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/styles/judge/events.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        .status-scheduled {
+            color: blue;
+           
+        }
+
+        .status-finished {
+            color: green;
+           
+        }
+
+        /* Center the pagination controls */
+        .pagination-controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .pagination-controls .btn {
+            font-size: 12px;
+            padding: 5px;
+            margin: 0 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Styling for disabled buttons */
+        .pagination-controls .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Hover effect for enabled buttons */
+        .pagination-controls .btn:hover:not(:disabled) {
+            background-color: #406bf9;
+            color: white;
+        }
+
+        /* Styling the page info text */
+        #page-info {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 0 20px;
+            display: inline-block;
+            color: #555;
+        }
+    </style>
 </head>
 <body>
+    {% include 'index_judge.html' %}
     <div class="container">
         <h1 class="my-4">Scheduled Events</h1>
         <table class="table table-bordered">
@@ -25,66 +74,31 @@
                 <!-- Events will be inserted here by JavaScript -->
             </tbody>
         </table>
-    </div>
 
-    <!-- Edit Event Modal -->
-    <div class="modal fade" id="editEventModal" tabindex="-1" role="dialog" aria-labelledby="editEventModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editEventModalLabel">Edit Event</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="editEventForm">
-                        <input type="hidden" id="editEventId">
-                        <div class="form-group">
-                            <label for="editEventTitle">Title</label>
-                            <input type="text" class="form-control" id="editEventTitle" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="editEventDate">Date</label>
-                            <input type="date" class="form-control" id="editEventDate" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="editEventTime">Time</label>
-                            <input type="time" class="form-control" id="editEventTime" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </form>
-                </div>
-            </div>
+        <!-- Pagination controls -->
+        <div class="pagination-controls">
+            <button id="prev-btn" class="btn btn-primary" disabled>Previous</button>
+            <span id="page-info"></span>
+            <button id="next-btn" class="btn btn-primary">Next</button>
         </div>
     </div>
 
     <script>
         $(document).ready(function() {
+            const rowsPerPage = 8; // Number of rows per page
+            let currentPage = 1;
+            let totalRows = 0;
+            let eventsData = [];
+
             function loadEvents() {
                 $.ajax({
                     url: '/judge/api/events',
                     method: 'GET',
                     success: function(events) {
-                        var tableBody = $('#events-table-body');
-                        tableBody.empty(); // Clear any existing content
-                        events.forEach(function(event) {
-                            var eventDate = new Date(event.event_date).toDateString();
-                            var row = '<tr>' +
-                                '<td>' + event.title + '</td>' +
-                                '<td>' + eventDate + '</td>' +
-                                '<td>' + event.event_time + '</td>' +
-                                '<td>' + event.status + '</td>' +
-                                '<td>' ;
-                                    if (event.status !== 'finished') {
-                                row += '<button class="btn btn-primary btn-sm edit-btn" data-id="' + event.id + '">Edit</button> ' +
-                                       '<button class="btn btn-success btn-sm finish-btn" data-id="' + event.id + '">Finish</button> ';
-                            }
-                            row += '<button class="btn btn-danger btn-sm delete-btn" data-id="' + event.id + '">Delete</button>' +
-                                   '</td>' +
-                                   '</tr>';
-                            tableBody.append(row);
-                        });
+                        eventsData = events; // Save the events data
+                        totalRows = events.length;
+                        updateTable();
+                        updatePaginationControls();
                     },
                     error: function() {
                         alert('Failed to load events.');
@@ -92,52 +106,78 @@
                 });
             }
 
+            function updateTable() {
+                var tableBody = $('#events-table-body');
+                tableBody.empty(); // Clear any existing content
+
+                // Calculate the starting and ending index for the current page
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = Math.min(start + rowsPerPage, totalRows);
+
+                // Display only the events for the current page
+                for (let i = start; i < end; i++) {
+                    const event = eventsData[i];
+                    var eventDate = new Date(event.event_date).toDateString();
+                    var statusClass = event.status === 'finished' ? 'status-finished' : 'status-scheduled';
+                    var row = '<tr>' +
+                        '<td>' + event.title + '</td>' +
+                        '<td>' + eventDate + '</td>' +
+                        '<td>' + event.event_time + '</td>' +
+                        '<td class="' + statusClass + '">' + event.status + '</td>' +
+                        '<td>';
+
+                    if (event.status !== 'finished') {
+                        row += '<button class="btn btn-success btn-sm finish-btn" data-id="' + event.id + '">Finish</button> ';
+                        row += '<button class="btn btn-primary btn-sm edit-btn" data-id="' + event.id + '">Edit</button> ';
+                    }
+
+                    row += '<button class="btn btn-danger btn-sm delete-btn" data-id="' + event.id + '">Delete</button>' +
+                        '</td>' +
+                        '</tr>';
+                    tableBody.append(row);
+                }
+            }
+
+            function updatePaginationControls() {
+                const totalPages = Math.ceil(totalRows / rowsPerPage);
+
+                $('#page-info').text(`Page ${currentPage} of ${totalPages}`);
+
+                // Enable or disable the "Previous" button
+                if (currentPage === 1) {
+                    $('#prev-btn').attr('disabled', true);
+                } else {
+                    $('#prev-btn').attr('disabled', false);
+                }
+
+                // Enable or disable the "Next" button
+                if (currentPage === totalPages) {
+                    $('#next-btn').attr('disabled', true);
+                } else {
+                    $('#next-btn').attr('disabled', false);
+                }
+            }
+
+            // Load events when the page loads
             loadEvents();
 
-            // Event listener for the edit button
-    $(document).on('click', '.edit-btn', function() {
-        var eventId = $(this).data('id');
-        $.ajax({
-            url: '/judge/api/events/' + eventId,
-            method: 'GET',
-            success: function(event) {
-                $('#editEventId').val(event.id);
-                $('#editEventTitle').val(event.title);
-                $('#editEventDate').val(event.event_date);
-                $('#editEventTime').val(event.event_time);
-                $('#editEventModal').modal('show');
-            },
-            error: function() {
-                alert('Failed to load event details.');
-            }
-        });
-    });
+            // Next button click event
+            $('#next-btn').on('click', function() {
+                if ((currentPage * rowsPerPage) < totalRows) {
+                    currentPage++;
+                    updateTable();
+                    updatePaginationControls();
+                }
+            });
 
-    // Save changes when the form is submitted
-    $('#editEventForm').submit(function(event) {
-        event.preventDefault();
-        var eventId = $('#editEventId').val();
-        var updatedEvent = {
-            title: $('#editEventTitle').val(),
-            event_date: $('#editEventDate').val(),
-            event_time: $('#editEventTime').val()
-        };
-
-        $.ajax({
-            url: '/judge/api/events/' + eventId,
-            method: 'PUT',
-            contentType: 'application/json',
-            data: JSON.stringify(updatedEvent),
-            success: function(response) {
-                $('#editEventModal').modal('hide');
-                loadEvents();
-                alert('Event updated successfully');
-            },
-            error: function() {
-                alert('Failed to update event.');
-            }
-        });
-    });
+            // Previous button click event
+            $('#prev-btn').on('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    updateTable();
+                    updatePaginationControls();
+                }
+            });
 
             // Mark event as finished
             $(document).on('click', '.finish-btn', function() {
@@ -156,6 +196,56 @@
                     }
                 });
             });
+
+           // Edit event
+$(document).on('click', '.edit-btn', function() {
+    var eventId = $(this).data('id');
+    var event = eventsData.find(event => event.id === eventId); // Get event data
+
+    // Prompt the user for new title, date, and time
+    var newTitle = prompt('Enter new event title:', event.title);
+    if (!newTitle) return; // Exit if no title is provided
+
+    var newDate = prompt('Enter new event date (YYYY-MM-DD):', event.event_date);
+    if (!newDate) return; // Exit if no date is provided
+
+    var newTime = prompt('Enter new event time (HH:MM):', event.event_time);
+    if (!newTime) return; // Exit if no time is provided
+
+    // Validate the date and time formats
+    var datePattern = /^\d{4}-\d{2}-\d{2}$/; // Simple YYYY-MM-DD pattern
+    var timePattern = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/; // HH:MM pattern
+
+    if (!datePattern.test(newDate)) {
+        alert('Invalid date format. Please enter the date as YYYY-MM-DD.');
+        return;
+    }
+
+    if (!timePattern.test(newTime)) {
+        alert('Invalid time format. Please enter the time as HH:MM.');
+        return;
+    }
+
+    // Send the updated data to the server via AJAX PUT request
+    $.ajax({
+        url: '/judge/api/editevents/' + eventId,
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            title: newTitle,
+            event_date: newDate,
+            event_time: newTime
+        }),
+        success: function(response) {
+            alert('Event updated successfully');
+            loadEvents(); // Reload events to reflect the updated data
+        },
+        error: function() {
+            alert('Failed to update the event.');
+        }
+    });
+});
+
 
             // Delete event
             $(document).on('click', '.delete-btn', function() {

@@ -1,0 +1,89 @@
+/* General Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-color: #f5f6fa;
+    color: #333;
+}
+
+/* Styling for the Container */
+.container {
+    margin-top: 80px;
+    background: white;
+    margin-left: 265px; /* Adjusted for the sidebar */
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: calc(100% - 265px); /* Adjust container width to fit next to the sidebar */
+    overflow-x: auto; /* Ensure horizontal scrolling if content overflows */
+}
+
+/* Table Styling */
+table.table {
+    width: 100%; /* Make sure the table takes the full width of the container */
+    border-collapse: collapse;
+    border-spacing: 0;
+    font-family: Arial, sans-serif;
+    background-color: #fff;
+}
+
+table.table th,
+table.table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+table.table th {
+    background-color: #34495e;
+    color: white;
+    font-weight: bold;
+}
+
+table.table tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+/* Table Actions Styling */
+.table .actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+.table .btn {
+    margin: 0 5px;
+    font-size: 0.9rem;
+}
+
+.edit-btn {
+    background-color: #536dff;
+    color: white;
+}
+
+.finish-btn {
+    background-color: #32900a;
+    color: white;
+}
+
+.delete-btn {
+    background-color: #e74c3c;
+    color: white;
+}
+
+/* Button Hover Effects */
+.btn:hover {
+    opacity: 0.9;
+}
+
+h1.my-4 {
+    font-size: 2.5rem;
+    color: #000000;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 30px;
+}

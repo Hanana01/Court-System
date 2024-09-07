@@ -4,10 +4,6 @@ from datetime import timedelta
 
 judge_bp = Blueprint('judge', __name__, template_folder='../../frontend/templates/judge')
 
-@judge_bp.route('/scheduled-events')
-def scheduled_events():
-    return render_template('scheduled_event.html')
-
 @judge_bp.route('/')
 def judge_index():
     return render_template('index_judge.html')
@@ -15,6 +11,10 @@ def judge_index():
 @judge_bp.route('/calendar')
 def judge_calendar():
     return render_template('judge_calendar.html')
+
+@judge_bp.route('/scheduled-events')
+def scheduled_events():
+    return render_template('scheduled_event.html')
 
 @judge_bp.route('/api/events', methods=['GET', 'POST'])
 def events():
@@ -66,7 +66,7 @@ def update_event(event_id):
         db.rollback()
         return jsonify({'error': str(e)}), 500
     
-@judge_bp.route('/api/events/<int:event_id>', methods=['PUT'])
+@judge_bp.route('/api/editevents/<int:event_id>', methods=['PUT'])
 def edit_event(event_id):
     db = mysql.connection
     cursor = db.cursor()
@@ -74,10 +74,14 @@ def edit_event(event_id):
     title = data.get('title')
     event_date = data.get('event_date')
     event_time = data.get('event_time')
+    
+    # Set the status to 'scheduled' when the event is edited
+    status = 'scheduled'
+    
     try:
         cursor.execute(
-            "UPDATE events SET title = %s, event_date = %s, event_time = %s WHERE id = %s",
-            (title, event_date, event_time, event_id)
+            "UPDATE events SET title = %s, event_date = %s, event_time = %s, status = %s WHERE id = %s",
+            (title, event_date, event_time, status, event_id)
         )
         db.commit()
         return jsonify({'message': 'Event updated successfully'})
