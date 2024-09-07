@@ -8,7 +8,7 @@ judge_bp = Blueprint('judge', __name__, template_folder='../../frontend/template
 def judge_index():
     return render_template('index_judge.html')
 
-@judge_bp.route('/calendar')
+@judge_bp.route('/judge_calendar')
 def judge_calendar():
     return render_template('judge_calendar.html')
 

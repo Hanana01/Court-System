@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, flash, jsonify
+from flask import Blueprint, render_template, request, jsonify
 from extensions import mysql
 
 admin_bp = Blueprint('admin', __name__, template_folder="../../frontend/templates/admin")
