@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='contact.css') }}">
+</head>
+<body>
+  <section id="email">
+    <div class="contact">
+      <span class="contactTitle">Contact us</span>
+      <br>
+      <span class="contactDesc">
+        Have a case that needs attention? Whether you're looking to file a new
+        case or seeking resolution for an existing one, you've come to the
+        right place. Use the contact form below to submit your case details,
+        and our team will assist you in finding the best solution. We're here
+        to help you navigate through legal matters and ensure a smooth process
+        from start to finish. Your satisfaction is our priority, so don't
+        hesitate to reach out. Let's work together to resolve your case
+        efficiently and effectively.
+      </span>
+    </div>
+
+    <div class="emailcontainer">
+      <div class="card p-4 shadow" style="max-width: 600px; margin: auto">
+        <form id="emailForm">
+          <div class="mb-3 row">
+            <div class="col-sm-9">
+              <input type="text" class="form-control" placeholder="Your name" id="name" required>
+            </div>
+          </div>
+
+          <div class="mb-3 row">
+            <div class="col-sm-9">
+              <input type="email" class="form-control" placeholder="Your email" id="from" required>
+            </div>
+          </div>
+
+          <div class="mb-3 row">
+            <div class="col-sm-9">
+              <input type="text" class="form-control" placeholder="Subject" id="subject" required>
+            </div>
+          </div>
+
+          <div class="mb-3 row">
+            <div class="col-sm-9">
+              <textarea class="form-control" placeholder="Message" id="message" rows="4" required></textarea>
+            </div>
+          </div>
+
+          <button type="submit" class="btnSecondary1">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+  <script src="{{ url_for('static', filename='contact.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCCMS - Add Case</title>
+    <link rel="stylesheet" href="../static/styles/admin/add.css">
+    {% include 'index_admin.html' %}
+</head>
+<body>
+<main>
+    <h1 class="heading">CREATE NEW CASE</h1>
+
+    <div class="container">
+        <form id="addCaseForm" method="post" novalidate>
+            <!-- Case Title -->
+            <div class="row">
+                <div class="col-25">
+                    <label for="caseTitle">Case Title</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="caseTitle" name="caseTitle" placeholder="Enter case title..." required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="caseNumber">Case Number</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="caseNumber" name="caseNumber" placeholder="Enter case number..." required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="date">Date</label>
+                </div>
+                <div class="col-75">
+                    <input type="date" id="date" name="date" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="caseType">Case Type</label>
+                </div>
+                <div class="col-75">
+                    <select name="caseType" id="caseType" required>
+                        <option value="" disabled selected>Select Case Type</option>
+                        <option value="Criminal">Criminal</option>
+                        <option value="Civil">Civil</option>
+                        <option value="Family">Family</option>
+                        <option value="Labor">Labor</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="plaintiffName">Plaintiff Name</label>
+                </div>
+                <div class="col-75">
+                    <select id="plaintiffName" name="plaintiffName" required>
+                        <option value="" disabled selected>Select Plaintiff</option>
+                        <!-- Options will be loaded here by fetching from the database -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="defendantName">Defendant Name</label>
+                </div>
+                <div class="col-75">
+                    <select id="defendantName" name="defendantName" required>
+                        <option value="" disabled selected>Select Defendant</option>
+                        <!-- Options will be loaded here by fetching from the database -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="description">Description</label>
+                </div>
+                <div class="col-75">
+                    <textarea id="description" name="description" placeholder="brief description about the case..." required></textarea>
+                </div>
+            </div>
+
+            <div class="row">
+                <input type="submit" value="Add Case">
+            </div>
+        </form>
+
+        <div id="message"></div>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Fetch the users and populate the select fields
+    function fetchUsers() {
+        fetch('/admin/users')  
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const plaintiffSelect = document.getElementById('plaintiffName');
+                const defendantSelect = document.getElementById('defendantName');
+
+                // Clear any existing options
+                plaintiffSelect.innerHTML = '<option value="" disabled selected>Select Plaintiff</option>';
+                defendantSelect.innerHTML = '<option value="" disabled selected>Select Defendant</option>';
+
+                // Populate the options
+                data.users.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.username;
+                    option.textContent = user.username;
+                    plaintiffSelect.appendChild(option);
+
+                    // Clone the option for the defendant select
+                    const defendantOption = option.cloneNode(true);
+                    defendantSelect.appendChild(defendantOption);
+                });
+            } else {
+                console.error('Failed to fetch users:', data.message);
+            }
+        })
+        .catch(error => console.error('Error fetching users:', error));
+    }
+
+    fetchUsers();  // Call the function to fetch and populate users
+
+    // Handle form submission
+    document.getElementById('addCaseForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const formData = new FormData(this);
+
+        const messageDiv = document.getElementById('message');
+        messageDiv.innerHTML = ''; // Clear any existing messages
+
+        fetch('/admin/add_case', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                messageDiv.innerHTML = `<p style="color: green;">${data.message}</p>`;
+                this.reset(); // Clear the form fields
+            } else {
+                messageDiv.innerHTML = `<p style="color: red;">${data.message}</p>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            messageDiv.innerHTML = `<p style="color: red;">An error occurred. Please try again.</p>`;
+        });
+    });
+});
+</script>
+</body>
+</html>
