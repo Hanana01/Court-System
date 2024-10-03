@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <title>DCCMS</title>
+    <link rel="stylesheet" href="../static/index.css">
+    <!-- Boxicons -->
+    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <!-- Favicon -->
+    <link rel="icon" href="../static/images/favicon.ico" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <nav>
+        <form action="#">
+            <div class="form-input">
+                <input type="search" placeholder="Search...">
+                <button type="submit" class="search-btn"><i class='bx bx-search'></i></button>
+            </div>
+        </form>
+        <a href="#" class="notification">
+            <i class='bx bxs-bell'></i>
+            <span class="num">8</span>
+        </a>
+    </nav>
+    <div class="sidebar close">
+        <div class="logo-details">
+            <img class="logo" src="../static/images/myLogo1.png" alt="Logo" />
+            <span class="logo-name">DCCMS</span>
+        </div>
+        <ul class="nav-links">
+            <li>
+                <a href="/admin/dashboard">
+                    <i class='bx bx-grid-alt'></i>
+                    <span class="link-name">Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <div class="icon-link">
+                    <a href="#">
+                        <i class='bx bxs-user-circle'></i>
+                        <span class="link-name">Lawyers</span>
+                    </a>
+                    <i class="bx bxs-chevron-down arrow"></i>
+                </div>
+                <ul class="sub-menu">
+                    <li><a href="/admin/add_lawyer">Add Lawyers</a></li>
+                    <li><a href="/admin/view_lawyers">View Lawyers</a></li>
+                </ul>
+            </li>
+            <li>
+                <div class="icon-link">
+                    <a href="#">
+                        <i class='bx bxs-briefcase'></i>
+                        <span class="link-name">Judges</span>
+                    </a>
+                    <i class="bx bxs-chevron-down arrow"></i>
+                </div>
+                <ul class="sub-menu">
+                    <li><a href="/admin/add_judge">Add Judges</a></li>
+                    <li><a href="/admin/view_judges">View Judges</a></li>
+                </ul>
+            </li>
+            <li>
+                <div class="icon-link">
+                    <a href="#">
+                        <i class='bx bxs-group'></i>
+                        <span class="link-name">Users</span>
+                    </a>
+                    <i class="bx bxs-chevron-down arrow"></i>
+                </div>
+                <ul class="sub-menu">
+                    <li><a href="/admin/add_user">Add Users</a></li>
+                    <li><a href="/admin/users_list">View Users</a></li>
+                </ul>
+            </li>
+            <li>
+                <div class="icon-link">
+                    <a href="#">
+                        <i class='bx bxs-spreadsheet'></i>
+                        <span class="link-name">Cases</span>
+                    </a>
+                    <i class="bx bxs-chevron-down arrow"></i>
+                </div>
+                <ul class="sub-menu">
+                    <li><a href="/admin/add_case">Add Cases</a></li>
+                    <li><a href="/admin/unfiled_cases">Unfiled Cases</a></li>
+                    <li><a href="/admin/filed_cases">Filed Cases</a></li>
+                    <li><a href="/admin/solved_cases">Solved Cases</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="/admin/calendar">
+                    <i class='bx bxs-calendar-event'></i>
+                    <span class="link-name">Calendar</span>
+                </a>
+            </li>
+            <li>
+                <a href="/admin/reports">
+                    <i class='bx bxs-file'></i>
+                    <span class="link-name">Reports</span>
+                </a>
+            </li>
+            <li>
+                <a href="/admin/settings">
+                    <i class='bx bxs-cog'></i>
+                    <span class="link-name">Settings</span>
+                </a>
+            </li>
+            <li>
+                <div class="profile-details">
+                    <div class="profile-content">
+                        <img src="../static/images/profile.png" alt="profile">
+                    </div>
+                    <div class="name-job">
+                        <div class="profile_name">Jone</div>
+                        <div class="job">Admin</div>
+                    </div>
+                    <i class='bx bx-log-out logout'></i>
+                </div>
+            </li>
+        </ul>
+    </div>
+    <main>
+        <div id="content">
+            <!-- Content will be loaded here -->
+        </div>
+    </main>
+
+    <script>
+        function loadPage(page) {
+            fetch(page)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('content').innerHTML = data;
+                })
+                .catch(error => console.error('Error loading the page:', error));
+        }
+    
+        // Sidebar toggle logic
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarToggle = document.querySelector('.bx-chevron-right'); // Assuming this is the toggle button
+        
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('close');
+        });
+    </script>
+</body>
+</html>
+
+

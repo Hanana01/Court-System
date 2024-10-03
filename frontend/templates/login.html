@@ -1,62 +1,61 @@
-
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@200&display=swap"
-      rel="stylesheet"
-    />
-
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='login.css') }}"
-    />
-  </head>
-  <body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+</head>
+<body>
     {% include 'navbar1.html' %}
     <div class="container">
-      <form action="/login" method="POST">
-        <h2>Sign in</h2>
-        <div class="content">
-          
-          <div class="input-box">
-            <label for="username">Username</label>
-            <input
-              type="text"
-              placeholder="Enter username/email"
-              name="username"
-              required
-            />
-          </div>
-          
-          <div class="input-box">
-            <label for="password">Password</label>
-            <input
-              type="password"
-              placeholder="Enter password"
-              name="password"
-              required
-            />
-          </div>
-          
-        <div class="resetpassword">
-          <p>
-           <a href="#">forgot password?</a></p>
-        </div>
-
-        <div class="button-container">
-          <button>Sign in</button>
-        </div>
-         <div class="alert">
-            <p>
-                Don't you have an account?
-             <a href="/register">Register here</a></p>
-          </div> 
-      </form>
+        <form action="{{ url_for('login') }}" method="POST">
+            <h2>Sign in</h2>
+            {% with messages = get_flashed_messages(with_categories=True) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="flash {{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            <div class="content">
+                <div class="input-box">
+                    <label for="username">Username</label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="Enter username/email"
+                        required
+                    />
+                </div>
+                <div class="input-box">
+                    <label for="password">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter password"
+                        required
+                    />
+                </div>
+                <div class="resetpassword">
+                    <p><a href="#">Forgot password?</a></p>
+                </div>
+                <div class="button-container">
+                    <button type="submit">Sign in</button>
+                </div>
+                <div class="alert">
+                    <p>Don't you have an account? <a href="/register">please contact Admin.</a></p>
+                </div>
+            </div>
+        </form>
     </div>
-  </body>
+</body>
 </html>

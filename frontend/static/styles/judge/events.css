@@ -1,0 +1,98 @@
+/* General Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-color: #f5f6fa;
+    color: #333;
+}
+
+.container {
+    margin-top: 80px;
+    background: white;
+    margin-left: 265px; 
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: calc(100% - 265px); /* container width to fit next to the sidebar */
+    overflow-x: auto; /* horizontal scrolling if content overflows */
+}
+
+table.table {
+    width: 100%; 
+    border-collapse: collapse;
+    border-spacing: 0;
+    font-family: Arial, sans-serif;
+    background-color: #fff;
+}
+
+table.table th,
+table.table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+table.table th {
+    background-color: #34495e;
+    color: white;
+    font-weight: bold;
+}
+
+table.table tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+
+.table .actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+
+.table .btn {
+    margin: 0 5px;
+    font-size: 1rem; 
+    padding: 10px 20px; 
+    border-radius: 5px; 
+    border: none; 
+    cursor: pointer; 
+    transition: all 0.3s ease; 
+}
+
+.edit-btn {
+    background-color: #536dff;
+    color: white;
+}
+
+.finish-btn {
+    background-color: #32900a;
+    color: white;
+}
+
+.delete-btn {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.table .btn:hover {
+    opacity: 0.9; 
+    transform: translateY(-2px); 
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.table .btn:active {
+    transform: translateY(1px); 
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); 
+}
+
+h1.my-4 {
+    font-size: 2.5rem;
+    color: #000000;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 30px;
+}

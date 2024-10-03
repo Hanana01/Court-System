@@ -1,0 +1,167 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'index_admin.html' %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCCMS - Add User</title>
+    <link rel="stylesheet" href="../static/styles/admin/add.css">
+   
+</head>
+<body>
+<main>
+    <h1 class="heading">CREATE NEW USER</h1>
+
+    <div class="container">
+        <form id="addUserForm" method="post" novalidate>
+            
+            <div class="row">
+                <div class="col-25">
+                    <label for="fullname">Full Name</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="fullname" name="fullname" placeholder="Enter full name...">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="username">Username</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="username" name="username" placeholder="Enter username...">
+                </div>
+            </div>
+
+              <div class="row">
+                <div class="col-25">
+                    <label for="role">User Role</label>
+                </div>
+                <div class="col-75">
+                    <select name="role" id="role" required>
+                        <option value="" disabled selected>Select Role</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Judge">Judge</option>
+                        <option value="Lawyer">Lawyer</option>
+                        <option value="Public">Public</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="password">Password</label>
+                </div>
+                <div class="col-75">
+                    <input type="password" id="password" name="password" placeholder="Enter password...">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="confirm_password">Confirm Password</label>
+                </div>
+                <div class="col-75">
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Enter password again...">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="address">Address</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="address" name="address" placeholder="Enter address...">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="contact">Contact</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="contact" name="contact" placeholder="Enter contact number...">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="email">Email</label>
+                </div>
+                <div class="col-75">
+                    <input type="email" id="email" name="email" placeholder="Enter email...">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="nic">NIC</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="nic" name="nic" placeholder="Enter NIC...">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="gender">Gender</label>
+                </div>
+                <div class="col-75 gender-options">
+                    <label><input type="radio" name="gender" value="male"> Male</label>
+                    <label><input type="radio" name="gender" value="female"> Female</label>
+                    <label><input type="radio" name="gender" value="other"> Other</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <input type="submit" value="Add User">
+            </div>
+        </form>
+
+        <!-- Message Display -->
+        <div id="message"></div>
+    </div>
+</main>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('addUserForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+    
+            const formData = new FormData(this);
+            const password = formData.get('password');
+            const confirmPassword = formData.get('confirm_password');
+    
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = ''; // Clear any existing messages
+    
+            // Check the password and confirm password match
+            if (password !== confirmPassword) {
+                messageDiv.innerHTML = '<p style="color: red;">Passwords do not match!</p>';
+                return; // Exit if passwords do not match
+            }
+    
+            // Submit the form
+            fetch('/admin/add_user', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    messageDiv.innerHTML = `<p style="color: green;">${data.message}</p>`;
+                    this.reset(); // Clear the form fields
+                } else {
+                    messageDiv.innerHTML = `<p style="color: red;">${data.message}</p>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                messageDiv.innerHTML = `<p style="color: red;">An error occurred. Please try again.</p>`;
+            });
+        });
+    });
+    </script>
+    
+</body>
+</html>

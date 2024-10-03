@@ -130,3 +130,23 @@ h2 {
 .button-container button:hover {
   background-image: linear-gradient(to right, #c9c2c9, rgb(14, 0, 91));
 }
+
+
+.flash-messages {
+  margin-bottom: 10px;
+}
+
+.flash {
+  
+  font-weight: bold;
+}
+
+.flash.success {
+  
+  color: #4CAF50;
+}
+
+.flash.error {
+  
+  color: #f44336;
+}

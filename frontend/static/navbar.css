@@ -14,8 +14,8 @@ body {
 
 .logo {
   object-fit: cover;
-  height: 7rem;
-  width: 7rem;
+  height: 4rem;
+  width: 4rem;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.2);
   box-shadow: 0 15px 20px rgba(0, 0, 0, 0.6);
@@ -41,8 +41,8 @@ body {
 
 .button1:hover {
   background-image: linear-gradient(to right, #c9c2c9, #06002b);
-  transform: scale(1.05); /* Adjust the scale factor as needed */
-  transition: transform 0.3s ease; /* Add a smooth transition effect */
+  transform: scale(1.05); /* the scale factor */
+  transition: transform 0.3s ease; /* a smooth transition effect */
   box-shadow: 0 0 8px rgb(0, 0, 0);
 }
 
