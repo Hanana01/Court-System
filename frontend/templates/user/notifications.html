@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCCMS - Notifications</title>
+    <link rel="stylesheet" href="../static/styles/admin/add.css">
+    {% include 'index_user.html' %}
+    <style>
+        /* Add styling for the notification container */
+        .notifications-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .notifications {
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: background-color 0.3s ease;
+        }
+
+        .unread {
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .read {
+            background-color: #fff;
+            color: #333;
+            font-weight: normal;
+        }
+
+        a.notification-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .notification small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .no-notifications {
+            text-align: center;
+            font-size: 16px;
+            color: #666;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1 class="heading">Your Notifications</h1>
+    <div class="notifications-container">
+        {% if notifications %}
+            <ul>
+                {% for notification in notifications %}
+                    <li class="notifications {% if not notification.is_read %}unread{% else %}read{% endif %}">
+                        <!-- Use notification.id instead of loop.index to reference the actual notification -->
+                        <a href="{{ url_for('user.mark_as_read', notification_id=notification.id) }}" class="notification-link">
+                            <p>{{ notification.message }}</p>
+                            <small>{{ notification.created_at }}</small>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="no-notifications">No notifications found.</p>
+        {% endif %}
+    </div>
+</main>
+</body>
+</html>

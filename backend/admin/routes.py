@@ -1,5 +1,4 @@
-
-from flask import Blueprint, render_template, request, flash, jsonify
+from flask import Blueprint, render_template, request, flash, jsonify,session
 from extensions import mysql
 from werkzeug.security import generate_password_hash
 
@@ -8,6 +7,7 @@ admin_bp = Blueprint('admin', __name__, template_folder="../../frontend/template
 @admin_bp.route('/')
 def admin_index():
     return render_template('index_admin.html')
+
 
 
 @admin_bp.route('/add_case', methods=['GET', 'POST'])
@@ -23,13 +23,36 @@ def admin_addCase():
 
         try:
             cursor = mysql.connection.cursor()
+
+            # Insert the case into the database
             cursor.execute('''
                 INSERT INTO cases (case_title, case_number, date, case_type, plaintiff_name, defendant_name, description)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
             ''', (case_title, case_number, date, case_type, plaintiff_name, defendant_name, description))
+
+            # Get the ID of the plaintiff and defendant
+            cursor.execute('SELECT id FROM users WHERE fullname = %s', (plaintiff_name,))
+            plaintiff = cursor.fetchone()
+
+            cursor.execute('SELECT id FROM users WHERE fullname = %s', (defendant_name,))
+            defendant = cursor.fetchone()
+
+            # Create notifications for the plaintiff and defendant
+            if plaintiff:
+                cursor.execute('''
+                    INSERT INTO notifications (user_id, message)
+                    VALUES (%s, %s)
+                ''', (plaintiff[0], f'A new case has been registered against you: {case_title}'))
+
+            if defendant:
+                cursor.execute('''
+                    INSERT INTO notifications (user_id, message)
+                    VALUES (%s, %s)
+                ''', (defendant[0], f'You have been registered as the plaintiff in a new case: {case_title}'))
+
             mysql.connection.commit()
             cursor.close()
-            return jsonify({'status': 'success', 'message': 'Case added successfully!'})
+            return jsonify({'status': 'success', 'message': 'Case added and notifications sent successfully!'})
         except Exception as e:
             return jsonify({'status': 'error', 'message': str(e)})
 
@@ -104,13 +127,6 @@ def admin_users():
         return jsonify({'status': 'error', 'message': str(e)})
 
 
-@admin_bp.route('/add_lawyer')
-def admin_addLawyer():
-    return render_template('add_lawyer.html')
-
-@admin_bp.route('/add_judge')
-def admin_addJudge():
-    return render_template('add_judge.html')
 
 @admin_bp.route('/dashboard')
 def admin_dashboard():
@@ -122,3 +138,5 @@ def test_db():
     cur.execute('''SELECT 1''')
     results = cur.fetchall()
     return f"DB Test Results: Success {results}"
+
+

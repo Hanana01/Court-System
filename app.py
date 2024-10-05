@@ -73,6 +73,17 @@ def create_database_and_tables():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )''')
+        
+        # Create notification table
+        cursor.execute(''' CREATE TABLE IF NOT EXISTS notifications (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            message TEXT NOT NULL,
+            is_read BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+''')
 
 
         db.commit()
@@ -89,6 +100,8 @@ def landing_page():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    session.clear()
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -104,6 +117,7 @@ def login():
         if user and check_password_hash(user['password'], password):
             # Set session variables
             session['loggedin'] = True
+            session['user_id'] = user['id']  
             session['username'] = user['username']
             session['role'] = user['role']
 
@@ -125,6 +139,32 @@ def login():
 
 
 
+@app.route('/profile')
+def profile():
+    if 'loggedin' in session:
+        username = session['username']
+        
+        conn = mysql.connection
+        cursor = conn.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute("SELECT fullname, username, role, address, contact, email, nic, gender FROM users WHERE username = %s", (username,))
+        profile_info = cursor.fetchone()
+
+        if profile_info:
+            return {
+                'status': 'success',
+                'data': profile_info
+            }
+        else:
+            return {
+                'status': 'error',
+                'message': 'Profile not found'
+            }
+    return {
+        'status': 'error',
+        'message': 'User not logged in'
+    }
+
+
 # Register the blueprints
 app.register_blueprint(user_bp, url_prefix='/user')
 app.register_blueprint(admin_bp, url_prefix='/admin')
@@ -135,3 +175,4 @@ if __name__ == '__main__':
     # Initialize the database before running the app
     create_database_and_tables()
     app.run(debug=True)
+    
