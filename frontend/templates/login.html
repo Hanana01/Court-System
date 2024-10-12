@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,17 +14,12 @@
 <body>
     {% include 'navbar1.html' %}
     <div class="container">
-        <form action="{{ url_for('login') }}" method="POST">
+        <form id="loginForm" method="POST">
             <h2>Sign in</h2>
-            {% with messages = get_flashed_messages(with_categories=True) %}
-                {% if messages %}
-                    <div class="flash-messages">
-                        {% for category, message in messages %}
-                            <div class="flash {{ category }}">{{ message }}</div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            {% endwith %}
+
+            <!-- Flash messages -->
+            <div id="flash-message"></div>
+
             <div class="content">
                 <div class="input-box">
                     <label for="username">Username</label>
@@ -52,10 +48,63 @@
                     <button type="submit">Sign in</button>
                 </div>
                 <div class="alert">
-                    <p>Don't you have an account? <a href="/register">please contact Admin.</a></p>
+                    <p>Don't have an account? <a href="/register">Please contact Admin.</a></p>
                 </div>
             </div>
         </form>
     </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // Clear previous messages
+            document.getElementById('flash-message').innerHTML = '';
+
+            var formData = new FormData(this);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '{{ url_for("login") }}', true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+
+                    // Handle success or error
+                    if (response.status === 'success') {
+                        document.getElementById('flash-message').innerHTML = `<div class="flash success">${response.message}</div>`;
+                        
+                        // Redirect after a delay
+                        setTimeout(function() {
+                            window.location.href = response.redirect_url;
+                        }, 2000);
+                    } else {
+                        document.getElementById('flash-message').innerHTML = `<div class="flash error">${response.message}</div>`;
+                    }
+                }
+            };
+
+            xhr.send(formData);
+        });
+    </script>
+
+    <style>
+
+        .alert a {
+            color: #e74c3c;
+            text-decoration: none;
+        }
+
+        /* Flash messages */
+        .flash {
+            
+            margin-bottom: 5px;
+            border-radius: 5px;
+            color: #fff;
+            text-align: left;
+        }
+
+        
+    </style>
 </body>
 </html>

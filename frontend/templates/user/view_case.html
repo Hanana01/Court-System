@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Case Details - {{ case[1] }}</title>
+    <link rel="stylesheet" href="../static/styles/admin/add.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMnG8tT3X44Ff5wFp3E5fS4aKxvDAHqgB+dAhA"
+      crossorigin="anonymous"
+    />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f7f7f7;
+        margin: 0;
+        padding: 20px;
+      }
+
+      .case-details-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+      }
+
+      .case-detail {
+        margin-bottom: 15px;
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .case-detail:last-child {
+        border-bottom: none;
+      }
+
+      .case-detail h3 {
+        margin: 0;
+        color: #555;
+      }
+
+      .case-detail p {
+        margin: 5px 0;
+        color: #333;
+      }
+
+      .back-button {
+        display: inline-block;
+        padding: 8px 12px;
+        background-color: #007bff;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-top: 20px;
+        display: block;
+        text-align: center;
+      }
+
+      .back-button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="case-details-container">
+      <h1>Case Details</h1>
+
+      <div class="case-detail">
+        <h3>Case Title</h3>
+        <p>{{ case[0] }}</p>
+      </div>
+
+      <div class="case-detail">
+        <h3>Case Number</h3>
+        <p>{{ case[1] }}</p>
+      </div>
+
+      <div class="case-detail">
+        <h3>Date</h3>
+        <p>{{ case[2] }}</p>
+      </div>
+
+      <div class="case-detail">
+        <h3>Case Type</h3>
+        <p>{{ case[3] }}</p>
+      </div>
+
+      <div class="case-detail">
+        <h3>Plaintiff</h3>
+        <p>{{ case[4] }}</p>
+      </div>
+
+      <div class="case-detail">
+        <h3>Defendant</h3>
+        <p>{{ case[5] }}</p>
+      </div>
+
+      <div class="case-detail">
+        <h3>Description</h3>
+        <p>{{ case[6] }}</p>
+      </div>
+
+      <a href="{{ url_for('user.my_cases') }}" class="back-button">Back to My Cases</a>
+    </div>
+  </body>
+</html>

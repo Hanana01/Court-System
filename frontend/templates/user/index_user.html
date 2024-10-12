@@ -30,6 +30,10 @@
     .notification-green .notification-dot {
       display: inline-block;
     }
+
+    .logout {
+      cursor: pointer; /* Make the logout icon look clickable */
+    }
   </style>
 </head>
 
@@ -47,7 +51,7 @@
     <a href="/user/all_notifications" class="notification" style="position: relative;">
         <i class="bx bxs-bell" id="notification-bell"></i>
         <span class="notification-dot" id="notification-dot"></span>
-      </a>
+    </a>
   </nav>
 
   <div class="sidebar close">
@@ -84,7 +88,7 @@
         </div>
         <ul class="sub-menu">
           <li><a class="link-name" href="#">My Cases</a></li>
-          <li><a href="#">View Cases</a></li>
+          <li><a href="/user/my_cases">View Cases</a></li>
           <li><a href="#">Solved Cases</a></li>
         </ul>
       </li>
@@ -117,9 +121,7 @@
     <div id="content"></div>
   </main>
 
- 
   <script>
-
     function loadPage(page, url) {
         history.pushState({ page: page }, page, url);
         fetch(url)
@@ -128,8 +130,7 @@
             document.getElementById("content").innerHTML = data;
           })
           .catch((error) => console.error("Error loading the page:", error));
-      }
-
+    }
 
     function loadProfile() {
       fetch("/profile")
@@ -165,14 +166,31 @@
           .catch((error) => {
             console.error("Error checking notifications:", error);
           });
-      }
-      
-      document.addEventListener("DOMContentLoaded", function () {
-        loadProfile();
-        checkNotifications();
-        setInterval(checkNotifications, 30000);  // Check for notifications every 30 seconds
-      });
-      
+    }
+
+    function logoutUser() {
+      fetch('/logout', { method: 'POST' })  // Send POST request to log out the user
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.status === 'success') {
+            // Redirect to login page
+            window.location.href = '/login';
+          } else {
+            console.error('Logout failed:', data.message);
+          }
+        })
+        .catch((error) => {
+          console.error('Error logging out:', error);
+        });
+    }
+
+    document.getElementById('logout').addEventListener('click', logoutUser);  // Attach the logout event
+
+    document.addEventListener("DOMContentLoaded", function () {
+      loadProfile();
+      checkNotifications();
+      setInterval(checkNotifications, 30000);  // Check for notifications every 30 seconds
+    });
   </script>
 </body>
 </html>

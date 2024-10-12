@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.security import check_password_hash
 from backend.user.routes import user_bp
 from backend.admin.routes import admin_bp
@@ -98,6 +98,45 @@ def create_database_and_tables():
 def landing_page():
     return render_template('pre_index.html')
 
+# @app.route('/login', methods=['GET', 'POST'])
+# def login():
+#     session.clear()
+
+#     if request.method == 'POST':
+#         username = request.form['username']
+#         password = request.form['password']
+
+#         # Connect to the database
+#         conn = mysql.connection
+#         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
+
+#         # Query to fetch user details by username
+#         cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+#         user = cursor.fetchone()
+
+#         if user and check_password_hash(user['password'], password):
+#             # Set session variables
+#             session['loggedin'] = True
+#             session['user_id'] = user['id']  
+#             session['username'] = user['username']
+#             session['role'] = user['role']
+
+
+#             # Redirect based on user role
+#             if user['role'] == 'Admin':
+#                 return redirect(url_for('admin.admin_index'))
+#             elif user['role'] == 'Judge':
+#                 return redirect(url_for('judge.judge_index'))
+#             elif user['role'] == 'Lawyer':
+#                 return redirect(url_for('lawyer.lawyer_index'))
+#             elif user['role'] == 'Public':
+#                 return redirect(url_for('user.user_index'))
+#         else:
+#             # Flash error message
+#             flash('Invalid username or password', 'error')
+#             return redirect(url_for('login'))
+#     return render_template('login.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     session.clear()
@@ -117,24 +156,23 @@ def login():
         if user and check_password_hash(user['password'], password):
             # Set session variables
             session['loggedin'] = True
-            session['user_id'] = user['id']  
+            session['user_id'] = user['id']
             session['username'] = user['username']
             session['role'] = user['role']
 
-
             # Redirect based on user role
             if user['role'] == 'Admin':
-                return redirect(url_for('admin.admin_index'))
+                return jsonify({'status': 'success', 'message': 'Login successful! Redirecting...', 'redirect_url': url_for('admin.admin_index')})
             elif user['role'] == 'Judge':
-                return redirect(url_for('judge.judge_index'))
+                return jsonify({'status': 'success', 'message': 'Login successful! Redirecting...', 'redirect_url': url_for('judge.judge_index')})
             elif user['role'] == 'Lawyer':
-                return redirect(url_for('lawyer.lawyer_index'))
+                return jsonify({'status': 'success', 'message': 'Login successful! Redirecting...', 'redirect_url': url_for('lawyer.lawyer_index')})
             elif user['role'] == 'Public':
-                return redirect(url_for('user.user_index'))
+                return jsonify({'status': 'success', 'message': 'Login successful! Redirecting...', 'redirect_url': url_for('user.user_index')})
         else:
-            # Flash error message
-            flash('Invalid username or password', 'error')
-            return redirect(url_for('login'))
+            # Flash error message for invalid login
+            return jsonify({'status': 'error', 'message': 'Invalid username or password'})
+
     return render_template('login.html')
 
 
@@ -164,6 +202,10 @@ def profile():
         'message': 'User not logged in'
     }
 
+@app.route('/logout', methods=['POST'])
+def logout():
+    session.clear()  # Clear session data
+    return jsonify({'status': 'success', 'message': 'Logged out successfully'})
 
 # Register the blueprints
 app.register_blueprint(user_bp, url_prefix='/user')

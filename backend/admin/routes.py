@@ -8,7 +8,7 @@ admin_bp = Blueprint('admin', __name__, template_folder="../../frontend/template
 def admin_index():
     return render_template('index_admin.html')
 
-
+from flask import session, jsonify, redirect
 
 @admin_bp.route('/add_case', methods=['GET', 'POST'])
 def admin_addCase():
@@ -31,10 +31,11 @@ def admin_addCase():
             ''', (case_title, case_number, date, case_type, plaintiff_name, defendant_name, description))
 
             # Get the ID of the plaintiff and defendant
-            cursor.execute('SELECT id FROM users WHERE fullname = %s', (plaintiff_name,))
+            cursor.execute('SELECT id FROM users WHERE username = %s', (plaintiff_name,))
             plaintiff = cursor.fetchone()
+            
 
-            cursor.execute('SELECT id FROM users WHERE fullname = %s', (defendant_name,))
+            cursor.execute('SELECT id FROM users WHERE username = %s', (defendant_name,))
             defendant = cursor.fetchone()
 
             # Create notifications for the plaintiff and defendant
