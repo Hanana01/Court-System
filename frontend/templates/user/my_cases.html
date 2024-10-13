@@ -267,16 +267,49 @@
         }
 
         // Select lawyer
-        function selectLawyer() {
-            const lawyerId = document.getElementById("lawyerSelect").value;
-            if (lawyerId) {
-                const caseNumber = cases[selectedCaseIndex][1];
-                alert(`You have selected Lawyer ID ${lawyerId} for Case Number ${caseNumber}`);
-                closeLawyerModal();
-            } else {
-                alert("Please select a lawyer.");
-            }
+        // Select lawyer with confirmation
+function selectLawyer() {
+    const lawyerId = document.getElementById("lawyerSelect").value;
+    if (lawyerId) {
+        const caseId = cases[selectedCaseIndex][7]; // Assuming the 8th element is case_id
+        const caseNumber = cases[selectedCaseIndex][1];
+        const caseTitle = cases[selectedCaseIndex][0];
+        
+        // Ask for confirmation before proceeding
+        const confirmMessage = `Are you sure you want to assign the selected lawyer to the case "${caseTitle}" (Case Number: ${caseNumber})?`;
+        if (confirm(confirmMessage)) {
+            // Send the notification to the server
+            fetch('/user/my_cases', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    lawyer_id: lawyerId,
+                    case_id: caseId,
+                    message: `You have been assigned to the case "${caseTitle}" (Case Number: ${caseNumber}).`
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Lawyer assigned and notified successfully!');
+                    closeLawyerModal();
+                } else {
+                    alert('Failed to send notification. Please try again.');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('An error occurred while sending the notification.');
+            });
         }
+    } else {
+        alert("Please select a lawyer.");
+    }
+}
+
+        
     </script>
 </body>
 </html>

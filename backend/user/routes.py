@@ -79,83 +79,55 @@ def check_notifications():
     })
   
 
-# @user_bp.route('/my_cases', methods=['GET'])
-# def my_cases():
-#     if 'loggedin' in session:
-#         user_id = session['user_id']
-#         username = session['username']
-#         print(f"User ID: {user_id}")  # Debug: print user ID
-#         conn = mysql.connection
-#         cursor = conn.cursor()
-
-#         # Query to get all cases associated with the user
-#         cursor.execute(''' 
-#             SELECT c.case_title, c.case_number, c.date, c.case_type, 
-#                    p.fullname AS plaintiff_name, d.fullname AS defendant_name, c.description
-#             FROM cases c
-#             LEFT JOIN users p ON p.username = c.plaintiff_name  -- Match plaintiff username with the cases
-#             LEFT JOIN users d ON d.username = c.defendant_name   -- Match defendant username with the cases
-#             WHERE p.username = %s OR d.username = %s  -- Match based on username
-#         ''', (username, username))  # Use the username from the session
-        
-#         cases = cursor.fetchall()
-#         print(f"Cases found: {cases}")  # Debug: print cases found
-
-#         cursor.close()
-#         return render_template('my_cases.html', cases=cases)
-
-#     return redirect(url_for('login'))  # Redirect if not logged in
-
 @user_bp.route('/my_cases', methods=['GET', 'POST'])
 def my_cases():
     if 'loggedin' in session:
         user_id = session['user_id']
         username = session['username']
-        print(f"User ID: {user_id}")  # Debug: print user ID
         conn = mysql.connection
         cursor = conn.cursor()
 
-        # Query to get all cases associated with the user (either as a plaintiff or defendant)
+        # Query to get all cases associated with the user (as plaintiff or defendant)
         cursor.execute(''' 
             SELECT c.case_title, c.case_number, c.date, c.case_type, 
-                   p.fullname AS plaintiff_name, d.fullname AS defendant_name, c.description, c.id AS case_id
+                   p.fullname AS plaintiff_name, d.fullname AS defendant_name, 
+                   c.description, c.id AS case_id
             FROM cases c
-            LEFT JOIN users p ON p.username = c.plaintiff_name  -- Match plaintiff username with the cases
-            LEFT JOIN users d ON d.username = c.defendant_name  -- Match defendant username with the cases
-            WHERE p.username = %s OR d.username = %s  -- Match based on username
-        ''', (username, username))  # Use the username from the session
-        
-        cases = cursor.fetchall()
-        # print(f"Cases found: {cases}")  # Debug: print cases found
+            LEFT JOIN users p ON p.username = c.plaintiff_name
+            LEFT JOIN users d ON d.username = c.defendant_name
+            WHERE p.username = %s OR d.username = %s
+        ''', (username, username))
 
-        # Fetch all lawyers (users with the role 'lawyer')
+        cases = cursor.fetchall()
+
+        # Fetch all lawyers
         cursor.execute(''' 
-            SELECT id, username FROM users WHERE role = 'Lawyer'
+            SELECT id, fullname FROM users WHERE role = 'Lawyer'
         ''')
         lawyers = cursor.fetchall()
-        print(f"Lawyers found: {lawyers}")  # Debug: print lawyers found
 
         if request.method == 'POST':
             # Logic to assign a lawyer
-            selected_lawyer_id = request.form.get('lawyer_id')
-            case_id = request.form.get('case_id')
-            
+            data = request.get_json()  # Parse the JSON data from the request
+            selected_lawyer_id = data.get('lawyer_id')
+            case_id = data.get('case_id')
+            client_id = user_id  # The currently logged-in user
+
             if selected_lawyer_id and case_id:
+                # Insert a record into the lawyer_notification table to assign a lawyer
+                message = f'You have been assigned to the case with ID {case_id}.'
+                
                 cursor.execute(''' 
-                    UPDATE cases SET lawyer_id = %s WHERE id = %s
-                ''', (selected_lawyer_id, case_id))
+                    INSERT INTO lawyer_notification (lawyer_id, case_id, client_id, message, status)
+                    VALUES (%s, %s, %s, %s, 'pending')
+                ''', (selected_lawyer_id, case_id, client_id, message))
                 conn.commit()
 
-                # Notification or email logic to notify the lawyer
-                # For example, sending an email (this will depend on your email system)
-                # send_notification_to_lawyer(selected_lawyer_id, case_id)
+                return jsonify(success=True)  # Return success response as JSON
 
-                flash('Lawyer assigned successfully!')
-
-        cursor.close()
         return render_template('my_cases.html', cases=cases, lawyers=lawyers)
 
-    return redirect(url_for('login'))  # Redirect if not logged in
+    return redirect(url_for('user.login'))
 
 
 
@@ -181,6 +153,5 @@ def view_case(case_number):
         else:
             return "Case not found", 404
 
-    return redirect(url_for('login'))  # Redirect if not logged in
-
+    return redirect(url_for('login'))  
 

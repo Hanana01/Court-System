@@ -84,6 +84,22 @@ def create_database_and_tables():
             FOREIGN KEY (user_id) REFERENCES users(id)
     )
 ''')
+        
+        # Create lawyer_notification table
+        cursor.execute(''' CREATE TABLE IF NOT EXISTS lawyer_notification (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            lawyer_id INT,
+            case_id INT,
+            client_id INT,  -- New column to indicate the client (plaintiff or defendant)
+            message TEXT,
+            status ENUM('pending', 'accepted', 'rejected') DEFAULT 'pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (lawyer_id) REFERENCES users(id),
+            FOREIGN KEY (case_id) REFERENCES cases(id),
+            FOREIGN KEY (client_id) REFERENCES users(id)
+    )
+''');
+
 
 
         db.commit()

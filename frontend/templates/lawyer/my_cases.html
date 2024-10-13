@@ -291,7 +291,7 @@
 
                 for (let i = 0; i < rows.length; i++) {
                     const cells = rows[i].getElementsByTagName('td');
-                    const caseNumberCell = cells[2]; // Case Number is in the third column
+                    const caseNumberCell = cells[2];
                     if (caseNumberCell) {
                         const caseNumber = caseNumberCell.textContent.toLowerCase();
                         rows[i].style.display = caseNumber.includes(searchInput) ? '' : 'none';

@@ -1,104 +1,134 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-  <head>
-    <meta charset="UTF-8" />
-    <title>DCCMS</title>
-    <link rel="stylesheet" href="../static/index.css" />
-    <!-- Boxicons -->
-    <link
-      href="https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css"
-      rel="stylesheet"
-    />
-    <!-- Favicon -->
-    <link rel="icon" href="../static/images/favicon.ico" type="image/x-icon" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  </head>
-  <body>
-    <nav>
-      <form action="#">
-        <div class="form-input">
-          <input type="search" placeholder="Search..." />
-          <button type="submit" class="search-btn">
-            <i class="bx bx-search"></i>
-          </button>
-        </div>
-      </form>
-      <a href="#" class="notification">
-        <i class="bx bxs-bell"></i>
-        <span class="num">8</span>
-      </a>
-    </nav>
-    <div class="sidebar close">
-      <div class="logo-details">
-        <img class="logo" src="../static/images/myLogo1.png" alt="Logo" />
-        <span class="logo-name">DCCMS</span>
+<head>
+  <meta charset="UTF-8" />
+  <title>DCCMS</title>
+  <link rel="stylesheet" href="../static/index.css" />
+  <link
+    href="https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css"
+    rel="stylesheet"
+  />
+  <link rel="icon" href="../static/images/favicon.ico" type="image/x-icon" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    .notification-green {
+      color: green;
+    }
+
+    /* Green dot for unread notifications */
+    .notification-dot {
+        position: absolute;
+        top: 5px; /* Adjust position to place the dot above the bell */
+        right: 10px;
+        width: 10px;
+        height: 10px;
+        background-color: #90EE90;
+        border-radius: 50%;
+        display: none; /* Hidden by default */
+      }
+
+    .notification-green .notification-dot {
+      display: inline-block;
+    }
+
+    .logout {
+      cursor: pointer; /* Make the logout icon look clickable */
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <form action="#">
+      <div class="form-input">
+        <input type="search" placeholder="Search..." />
+        <button type="submit" class="search-btn">
+          <i class="bx bx-search"></i>
+        </button>
       </div>
-      <ul class="nav-links">
-        <li>
-          <a href="#">
-            <i class="bx bx-grid-alt"></i>
-            <span class="link-name">Dashboard</span>
-          </a>
-        </li>
-        <li>
-          <a href="#">
-            <i class="bx bxs-briefcase"></i>
-            <span class="link-name">Judges</span>
-          </a>
-        </li>
-        <li>
-          <a href="#">
-            <i class="bx bxs-user-circle"></i>
-            <span class="link-name">Lawyers</span>
-          </a>
-        </li>
-        <li>
-          <div class="icon-link">
-            <a href="#">
-              <i class="bx bxs-spreadsheet"></i>
-              <span class="link-name">My Cases</span>
-            </a>
-            <i class="bx bxs-chevron-down arrow"></i>
-          </div>
-          <ul class="sub-menu">
-            <li><a class="link-name" href="#">My Cases</a></li>
-            <li><a href="#">View Cases</a></li>
-            <li><a href="#">Solved Cases</a></li>
-          </ul>
-        </li>
-        <li>
-          <a href="#">
-            <i class="bx bxs-calendar-event"></i>
-            <span class="link-name">Calendar</span>
-          </a>
-        </li>
-        <li>
-          <a href="#">
-            <i class="bx bxs-file"></i>
-            <span class="link-name">Case Documents</span>
-          </a>
-        </li>
-        <li>
-            <div class="profile-details">
-                <div class="profile-content">
-                    <img src="../static/images/profile.png" alt="profile" id="profile-image">
-                </div>
-                <div class="name-job">
-                    <div class="profile_name" id="profile-username">Loading...</div>
-                    <div class="job" id="profile-role">Loading...</div>
-                </div>
-                <i class='bx bx-log-out logout' id="logout"></i>
-            </div>
-        </li>
-      </ul>
+    </form>
+    <!-- Notification bell with a green dot for new notifications -->
+    <a href="/lawyer/notifications" class="notification" style="position: relative;">
+        <i class="bx bxs-bell" id="notification-bell"></i>
+        <span class="notification-dot" id="notification-dot"></span>
+    </a>
+  </nav>
+
+  <div class="sidebar close">
+    <div class="logo-details">
+      <img class="logo" src="../static/images/myLogo1.png" alt="Logo" />
+      <span class="logo-name">DCCMS</span>
     </div>
-    <main>
-      <div id="content">
-        <!-- Content from all html will be loaded here -->
-      </div>
-    </main>
-    <script>
-      function loadPage(page, url) {
+    <ul class="nav-links">
+      <li>
+        <a href="#">
+          <i class="bx bx-grid-alt"></i>
+          <span class="link-name">Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <i class="bx bxs-briefcase"></i>
+          <span class="link-name">Judges</span>
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <i class="bx bxs-user-circle"></i>
+          <span class="link-name">Lawyers</span>
+        </a>
+      </li>
+      <li>
+        <div class="icon-link">
+          <a href="#">
+            <i class="bx bxs-spreadsheet"></i>
+            <span class="link-name">My Cases</span>
+          </a>
+          <i class="bx bxs-chevron-down arrow"></i>
+        </div>
+        <ul class="sub-menu">
+          <li><a class="link-name" href="#">My Cases</a></li>
+          <li><a href="/lawyer/my_cases">View Cases</a></li>
+          <li><a href="#">Solved Cases</a></li>
+        </ul>
+      </li>
+      <li>
+        <a href="#">
+          <i class="bx bxs-calendar-event"></i>
+          <span class="link-name">Calendar</span>
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <i class="bx bxs-file"></i>
+          <span class="link-name">Case Documents</span>
+        </a>
+      </li>
+      <li>
+        <div class="profile-details">
+          <div class="profile-content">
+            <img
+              src="../static/images/profile.png"
+              alt="profile"
+              id="profile-image"
+            />
+          </div>
+          <div class="name-job">
+            <div class="profile_name" id="profile-username">Loading...</div>
+            <div class="job" id="profile-role">Loading...</div>
+          </div>
+          <i class="bx bx-log-out logout" id="logout"></i>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <main>
+    <div id="content"></div>
+  </main>
+
+  <script>
+    function loadPage(page, url) {
         history.pushState({ page: page }, page, url);
         fetch(url)
           .then((response) => response.text())
@@ -106,35 +136,67 @@
             document.getElementById("content").innerHTML = data;
           })
           .catch((error) => console.error("Error loading the page:", error));
-      }
-    </script>
+    }
 
-    <script>
-      function loadProfile() {
-        fetch("/profile")
+    function loadProfile() {
+      fetch("/profile")
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.status === "success") {
+            document.getElementById("profile-username").textContent =
+              data.data.username;
+            document.getElementById("profile-role").textContent =
+              data.data.role;
+          } else {
+            console.error("Error fetching profile information:", data.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Error loading profile:", error);
+        });
+    }
+
+    function checkNotifications() {
+        fetch("/user/check_notifications")  
           .then((response) => response.json())
           .then((data) => {
-            if (data.status === "success") {
-              document.getElementById("profile-username").textContent =
-                data.data.username;
-              document.getElementById("profile-role").textContent =
-                data.data.role;
+            console.log("Notification check response:", data);  // Log the response for debugging
+            if (data.status === "success" && data.unread_notifications > 0) {
+              // Show the green dot if there are unread notifications
+              document.getElementById("notification-dot").style.display = "inline-block";
             } else {
-              console.error(
-                "Error fetching profile information:",
-                data.message
-              );
+              // Hide the green dot if there are no unread notifications
+              document.getElementById("notification-dot").style.display = "none";
             }
           })
           .catch((error) => {
-            console.error("Error loading profile:", error);
+            console.error("Error checking notifications:", error);
           });
-      }
+    }
 
-      // Call the function when the page loads
-      document.addEventListener("DOMContentLoaded", function () {
-        loadProfile();
-      });
-    </script>
-  </body>
+    function logoutUser() {
+      fetch('/logout', { method: 'POST' })  // Send POST request to log out the user
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.status === 'success') {
+            // Redirect to login page
+            window.location.href = '/login';
+          } else {
+            console.error('Logout failed:', data.message);
+          }
+        })
+        .catch((error) => {
+          console.error('Error logging out:', error);
+        });
+    }
+
+    document.getElementById('logout').addEventListener('click', logoutUser);  // Attach the logout event
+
+    document.addEventListener("DOMContentLoaded", function () {
+      loadProfile();
+      checkNotifications();
+     // setInterval(checkNotifications, 30000);  // Check for notifications every 30 seconds
+    });
+  </script>
+</body>
 </html>
