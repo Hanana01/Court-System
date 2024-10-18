@@ -17,8 +17,8 @@ body {
     margin-left: 265px; 
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    width: calc(100% - 265px); /* container width to fit next to the sidebar */
-    overflow-x: auto; /* horizontal scrolling if content overflows */
+    width: calc(100% - 265px); 
+    overflow-x: auto; 
 }
 
 table.table {
@@ -55,8 +55,8 @@ table.table tbody tr:nth-child(even) {
 
 .table .btn {
     margin: 0 5px;
-    font-size: 1rem; 
-    padding: 10px 20px; 
+    font-size: 14px; 
+    padding: 10px 10px; 
     border-radius: 5px; 
     border: none; 
     cursor: pointer; 
@@ -96,3 +96,5 @@ h1.my-4 {
     text-align: center;
     margin-bottom: 30px;
 }
+
+

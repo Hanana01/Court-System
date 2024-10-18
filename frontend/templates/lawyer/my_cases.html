@@ -277,58 +277,30 @@
             <div id="caseDetails"></div>
         </div>
     </div>
-
-    <script>
-        const cases = {{ cases|tojson }};
-        
-        function filterCases() {
-            const searchInput = document.getElementById('caseSearch').value.toLowerCase();
-            const categories = ['acceptedCases', 'rejectedCases', 'pendingCases'];
-            
-            categories.forEach(category => {
-                const table = document.querySelector(`#${category} table tbody`);
-                const rows = table.getElementsByTagName('tr');
-
-                for (let i = 0; i < rows.length; i++) {
-                    const cells = rows[i].getElementsByTagName('td');
-                    const caseNumberCell = cells[2];
-                    if (caseNumberCell) {
-                        const caseNumber = caseNumberCell.textContent.toLowerCase();
-                        rows[i].style.display = caseNumber.includes(searchInput) ? '' : 'none';
-                    }
-                }
-            });
-        }
-
-        function showCaseDetails(index) {
-            const caseDetail = cases[index];
+<script>
+    function showCaseDetails(index) {
+        const caseDetail = cases[index];
+        if (caseDetail) {
             const caseDetailsDiv = document.getElementById('caseDetails');
             caseDetailsDiv.innerHTML = `
                 <div class="case-detail">
-                    <h3>${caseDetail.case_title}</h3>
-                    <p><strong>Case ID:</strong> ${caseDetail.case_id}</p>
-                    <p><strong>Case Number:</strong> ${caseDetail.case_number}</p>
-                    <p><strong>Date:</strong> ${caseDetail.date}</p>
-                    <p><strong>Case Type:</strong> ${caseDetail.case_type}</p>
-                    <p><strong>Plaintiff:</strong> ${caseDetail.plaintiff}</p>
-                    <p><strong>Defendant:</strong> ${caseDetail.defendant}</p>
-                    <p><strong>Client Name:</strong> ${caseDetail.client_name}</p>
-                    <p><strong>Status:</strong> ${caseDetail.status}</p>
+                    <h3>${caseDetail.case_title || 'N/A'}</h3>
+                    <p><strong>Case ID:</strong> ${caseDetail.case_id || 'N/A'}</p>
+                    <p><strong>Case Number:</strong> ${caseDetail.case_number || 'N/A'}</p>
+                    <p><strong>Date:</strong> ${caseDetail.date || 'N/A'}</p>
+                    <p><strong>Case Type:</strong> ${caseDetail.case_type || 'N/A'}</p>
+                    <p><strong>Plaintiff:</strong> ${caseDetail.plaintiff || 'N/A'}</p>
+                    <p><strong>Defendant:</strong> ${caseDetail.defendant || 'N/A'}</p>
+                    <p><strong>Client Name:</strong> ${caseDetail.client_name || 'N/A'}</p>
+                    <p><strong>Status:</strong> ${caseDetail.status || 'N/A'}</p>
                 </div>
             `;
             document.getElementById('caseModal').style.display = 'block';
+        } else {
+            console.error("Case detail not found for index:", index);
         }
-
-        function closeModal() {
-            document.getElementById('caseModal').style.display = 'none';
-        }
-
-        window.onclick = function(event) {
-            const modal = document.getElementById('caseModal');
-            if (event.target === modal) {
-                closeModal();
-            }
-        }
-    </script>
+    }
+</script>
+    
 </body>
 </html>

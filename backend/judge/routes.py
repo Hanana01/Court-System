@@ -33,7 +33,6 @@ def events():
         return jsonify(events)
     elif request.method == 'POST':
         data = request.json
-        print("Received data:", data)  # Debugging: Log received data
         title = data.get('title')
         event_date = data.get('event_date')
         event_time = data.get('event_time')
@@ -45,10 +44,8 @@ def events():
                 (title, event_date, event_time, status, judge_id)
             )
             db.commit()
-            print("Event created successfully")  # Debugging: Log success
             return jsonify({'message': 'Event created successfully'}), 201
         except Exception as e:
-            print("Error inserting event:", e)  # Debugging: Log error
             db.rollback()
             return jsonify({'error': str(e)}), 500
 
@@ -65,7 +62,7 @@ def update_event(event_id):
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500
-    
+
 @judge_bp.route('/api/editevents/<int:event_id>', methods=['PUT'])
 def edit_event(event_id):
     db = mysql.connection
@@ -88,4 +85,3 @@ def edit_event(event_id):
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500
-

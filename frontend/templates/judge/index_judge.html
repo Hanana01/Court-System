@@ -82,7 +82,7 @@
                             <div class="profile_name" id="profile-username">Loading...</div>
                             <div class="job" id="profile-role">Loading...</div>
                         </div>
-                        <i class='bx bx-log-out logout' id="logout"></i>
+                        <i class='bx bx-log-out logout' id="logout" style="cursor: pointer;"></i>
                     </div>
                 </li>
             </ul>
@@ -90,50 +90,81 @@
 
         <main>
             <div id="content">
-                <!-- Content will be loaded here -->
             </div>
         </main>
 
         <script>
-            function loadPage(page) {
-                fetch(page)
-                    .then(response => response.text())
-                    .then(data => {
-                        document.getElementById('content').innerHTML = data;
-                    })
-                    .catch(error => console.error('Error loading the page:', error));
-            }
+           function loadPage(page, url) {
+        history.pushState({ page: page }, page, url);
+        fetch(url)
+          .then((response) => response.text())
+          .then((data) => {
+            document.getElementById("content").innerHTML = data;
+          })
+          .catch((error) => console.error("Error loading the page:", error));
+      }
 
-           
-            // Sidebar toggle logic
-            const sidebar = document.querySelector('.sidebar');
-            const sidebarToggle = document.querySelector('.bx-chevron-right');
+    
+        // Function to load the judge's profile and retrieve their ID
+        function loadJudgeProfile() {
+            fetch("/profile")
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data.status === "success") {
+                        document.getElementById("profile-username").textContent = data.data.username;
+                        document.getElementById("profile-role").textContent = data.data.role;
+                    } else {
+                        console.error("Error fetching judge information:", data.message);
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error loading judge profile:", error);
+                });
+        }
 
-            sidebarToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('close');
-            });
-        </script>
-        <script>
-            function loadProfile() {
-                fetch('/profile')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            document.getElementById('profile-username').textContent = data.data.username;
-                            document.getElementById('profile-role').textContent = data.data.role;
-                        } else {
-                            console.error('Error fetching profile information:', data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error loading profile:', error);
-                    });
+
+function logoutUser() {
+    fetch("/logout", { method: "POST" }) // Send POST request to log out the user
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.status === "success") {
+                // Redirect to login page
+                window.location.href = "/login";
+            } else {
+                console.error("Logout failed:", data.message);
             }
+        })
+        .catch((error) => {
+            console.error("Error logging out:", error);
+        });
+}
+
+document.getElementById("logout").addEventListener("click", logoutUser); // Attach the logout event
+
+document.addEventListener("DOMContentLoaded", function () {
+    loadJudgeProfile(); // Load the profile when the page is ready
+});
         
-            // Call the function when the page loads
-            document.addEventListener('DOMContentLoaded', function() {
-                loadProfile();
-            });
+      function checkNotifications() {
+        fetch("/admin/check_notifications")
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Notification check response:", data); // Log the response for debugging
+            if (data.status === "success" && data.unread_notifications > 0) {
+              // Show the green dot if there are unread notifications
+              document.getElementById("notification-dot").style.display =
+                "inline-block";
+            } else {
+              // Hide the green dot if there are no unread notifications
+              document.getElementById("notification-dot").style.display =
+                "none";
+            }
+          })
+          .catch((error) => {
+            console.error("Error checking notifications:", error);
+          });
+      }
+
         </script>
     </body>
 </html>

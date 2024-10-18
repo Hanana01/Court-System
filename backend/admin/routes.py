@@ -72,6 +72,7 @@ def admin_addUser():
         email = request.form.get('email')
         nic = request.form.get('nic')
         gender = request.form.get('gender')
+        description = request.form.get('description')
 
         try:
             
@@ -79,9 +80,9 @@ def admin_addUser():
             
             cursor = mysql.connection.cursor()
             cursor.execute('''
-                INSERT INTO users (fullname, username, role, password, address, contact, email, nic, gender)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            ''', (fullname, username, role, password_hash, address, contact, email, nic, gender))
+                INSERT INTO users (fullname, username, role, password, address, contact, email, nic, gender, description)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ''', (fullname, username, role, password_hash, address, contact, email, nic, gender, description))
             mysql.connection.commit()
             cursor.close()
             return jsonify({'status': 'success', 'message': 'User added successfully!'})
@@ -107,6 +108,35 @@ def admin_users_list():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
 
+@admin_bp.route('/view_user/<int:id>', methods=['GET'])
+def admin_view_user(id):
+    try:
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT id, fullname, username, role, address, contact, email, nic, gender, description FROM users WHERE id = %s', (id,))
+        user = cursor.fetchone()
+        cursor.close()
+
+        if user:
+            # Convert user data to dictionary
+            user_data = {
+                'id': user[0],
+                'fullname': user[1],
+                'username': user[2],
+                'role': user[3],
+                'address': user[4],
+                'contact': user[5],
+                'email': user[6],
+                'nic': user[7],
+                'gender': user[8],
+                'description': user[9]
+            }
+            return jsonify({'status': 'success', 'user': user_data})
+        else:
+            return jsonify({'status': 'error', 'message': 'User not found'}), 404
+
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 
 @admin_bp.route('/users', methods=['GET'])
 def admin_users():
@@ -114,9 +144,9 @@ def admin_users():
     try:
         cursor = mysql.connection.cursor()
         if role:
-            cursor.execute('SELECT id, fullname, username, role, address, contact, email, nic, gender FROM users WHERE role = %s', (role,))
+            cursor.execute('SELECT id, fullname, username, role, address, contact, email, nic, gender, description FROM users WHERE role = %s', (role,))
         else:
-            cursor.execute('SELECT id, fullname, username, role, address, contact, email, nic, gender FROM users')
+            cursor.execute('SELECT id, fullname, username, role, address, contact, email, nic, gender, description FROM users')
         users = cursor.fetchall()
         cursor.close()
 
@@ -133,11 +163,10 @@ def admin_users():
 def admin_dashboard():
     return render_template('admin_dashboard.html')
 
-@admin_bp.route('/test-db')
-def test_db():
-    cur = mysql.connection.cursor()
-    cur.execute('''SELECT 1''')
-    results = cur.fetchall()
-    return f"DB Test Results: Success {results}"
+@admin_bp.route('/calendar')
+def admin_calendar():
+    return render_template('admin_calendar.html')
+
+
 
 

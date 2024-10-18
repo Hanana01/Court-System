@@ -56,7 +56,8 @@ def create_database_and_tables():
             contact VARCHAR(20),
             email VARCHAR(100),
             nic VARCHAR(20),
-            gender ENUM('male', 'female', 'other')   
+            gender ENUM('male', 'female', 'other'),
+            description VARCHAR(255)    
         )''');
         
         
