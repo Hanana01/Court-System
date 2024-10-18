@@ -15,8 +15,8 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 # MySQL configurations
 app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = ''
+app.config['MYSQL_USER'] = 'nihla'
+app.config['MYSQL_PASSWORD'] = 'EX6826679#'
 app.config['MYSQL_DB'] = 'districtcourt'
 
 # Initialize MySQL
