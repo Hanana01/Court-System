@@ -1,0 +1,115 @@
+@import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap");
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --poppins: "Poppins", sans-serif;
+    --lato: "Lato", sans-serif;
+    --light: #f9f9f9;
+    --blue: #3c91e6;
+    --light-blue: #cfe8ff;
+    --grey: #eee;
+    --dark-grey: #aaaaaa;
+    --dark: #342e37;
+    --red: #db504a;
+    --yellow: #ffce26;
+    --light-yellow: #fff2c6;
+    --orange: #fd7238;
+    --light-orange: #ffe0d3;
+  }
+
+  body {
+    font-family: var(--poppins);
+    margin-left: 260px; 
+    background: var(--grey);
+    overflow-x: hidden;
+  }
+  
+  .dashboard-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding: 20px;
+  }
+  
+  .stats-summary {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    margin: 20px 0;
+}
+
+.stat-item {
+    background: #f4c0eb;
+    border-radius: 10px;
+    border-left: 8px solid rgb(46, 20, 192);
+    padding: 50px;
+    width: 30%;
+    margin: 10px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+}
+
+.stat-item i {
+    font-size: 2rem;
+    margin-right: 10px;
+    color: var(--blue);
+}
+
+.stat-item span {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--dark);
+}
+
+@media (max-width: 768px) {
+    .stat-item {
+        width: 45%;
+    }
+}
+
+@media (max-width: 480px) {
+    .stat-item {
+        width: 100%;
+    }
+}
+
+  
+  .recent-activities,
+  .case-status,
+  .user-activities,
+  .notifications {
+      background-color: var(--light);
+      padding: 20px;
+      border-radius: 8px;
+      flex: 1 1 calc(50% - 20px);
+      box-sizing: border-box;
+  }
+  
+  .case-status .chart {
+      height: 200px;
+      background-color: var(--grey);
+      border-radius: 8px;
+      margin-bottom: 10px;
+  }
+  
+  h3 {
+      margin-bottom: 10px;
+  }
+  
+  ul {
+      list-style: none;
+      padding: 0;
+  }
+  

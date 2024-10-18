@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Users</title>
+    <link rel="stylesheet" href="../static/styles/admin/add.css">
+    {% include 'index_admin.html' %}
+    <style>
+       
+        
+        }
+
+        /* Style the heading */
+        .heading {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Style the search form */
+        .search-container {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .search-container form {
+            display: inline-block;
+        }
+
+        .search-container label {
+            margin-right: 10px;
+        }
+
+        .search-container select {
+            padding: 5px;
+            margin-right: 10px;
+        }
+
+        .search-container button {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .search-container button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Style the table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+<main>
+    
+
+    <div class="container">
+        <h1 class="heading">All Users</h1>
+        <!-- Search Form -->
+        <div class="search-container">
+            <form id="searchForm" method="get">
+                <label for="role">Search by Role:</label>
+                <select name="role" id="role">
+                    <option value="">All Roles</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Judge">Judge</option>
+                    <option value="Lawyer">Lawyer</option>
+                    <option value="Public">Public</option>
+                </select>
+                <button type="submit">Search</button>
+            </form>
+        </div>
+
+        <!-- Users Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Full Name</th>
+                    <th>Username</th>
+                    <th>User_Role</th>
+                    <th>Address</th>
+                    <th>Contact</th>
+                    <th>Email</th>
+                    <th>NIC</th>
+                    <th>Gender</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user[0] }}</td>
+                    <td>{{ user[1] }}</td>
+                    <td>{{ user[2] }}</td>
+                    <td>{{ user[3] }}</td>
+                    <td>{{ user[4] }}</td>
+                    <td>{{ user[5] }}</td>
+                    <td>{{ user[6] }}</td>
+                    <td>{{ user[7] }}</td>
+                    <td>{{ user[8] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

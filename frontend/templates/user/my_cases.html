@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DCCMS - My Cases</title>
+    <link rel="stylesheet" href="../static/styles/admin/add.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMnG8tT3X44Ff5wFp3E5fS4aKxvDAHqgB+dAhA" crossorigin="anonymous" />
+    {% include 'index_user.html' %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .cases-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #e8f0fe;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .view-button, .select-lawyer-button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            text-decoration: none;
+            background-color: #007bff;
+        }
+
+        .no-cases {
+            text-align: center;
+            font-size: 16px;
+            color: #666;
+            margin-top: 20px;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 60%;
+            margin: auto;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover, .close:focus {
+            color: red;
+            cursor: pointer;
+        }
+
+        .case-detail {
+            margin-bottom: 15px;
+        }
+
+        .case-detail h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .case-detail p {
+            margin: 5px 0 0 0;
+            font-size: 1rem;
+            word-wrap: break-word;
+        }
+
+        /* Lawyer selection modal */
+        .lawyer-select-modal {
+            display: none;
+            position: fixed;
+            z-index: 2;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .lawyer-modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+            margin: auto;
+        }
+
+        .lawyer-select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 20px;
+        }
+
+        .lawyer-button {
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+    <main>
+        <h1 class="heading">Your Cases</h1>
+        <div class="cases-container">
+            {% if cases|length > 0 %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Case Title</th>
+                        <th>Case Number</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Plaintiff</th>
+                        <th>Defendant</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for case in cases %}
+                    <tr>
+                        <td>{{ case[0] }}</td>
+                        <td>{{ case[1] }}</td>
+                        <td>{{ case[2] }}</td>
+                        <td>{{ case[3] }}</td>
+                        <td>{{ case[4] }}</td>
+                        <td>{{ case[5] }}</td>
+                        <td class="action-buttons">
+                            <!-- View button that opens the modal -->
+                            <button class="view-button" onclick="showCaseDetails({{ loop.index0 }})">View</button>
+
+                            <!-- Button to open lawyer selection modal -->
+                            <button class="select-lawyer-button" onclick="openLawyerModal({{ loop.index0 }})">Select Lawyer</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="no-cases">No cases found.</p>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Case Details Modal -->
+    <div id="caseModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h1>Case Details</h1>
+            <div id="caseDetails"></div>
+            <a href="javascript:void(0)" class="back-button" onclick="closeModal()">Back to My Cases</a>
+        </div>
+    </div>
+
+    <!-- Lawyer Selection Modal -->
+    <div id="lawyerModal" class="lawyer-select-modal">
+        <div class="lawyer-modal-content">
+            <span class="close" onclick="closeLawyerModal()">&times;</span>
+            <h2>Select Lawyer</h2>
+            <select id="lawyerSelect" class="lawyer-select">
+                <option value="">Select a lawyer</option>
+                {% for lawyer in lawyers %}
+                <option value="{{ lawyer[0] }}">{{ lawyer[1] }}</option>
+                {% endfor %}
+            </select>
+            <button class="lawyer-button" onclick="selectLawyer()">Select</button>
+        </div>
+    </div>
+
+    <script>
+        const cases = {{ cases|tojson }}; // Convert the cases array to JSON
+        let selectedCaseIndex = null;
+
+        // Show case details modal
+        function showCaseDetails(index) {
+            const caseData = cases[index];
+            const caseDetails = `
+                <div class="case-detail"><h3>Case Title</h3><p>${caseData[0]}</p></div>
+                <div class="case-detail"><h3>Case Number</h3><p>${caseData[1]}</p></div>
+                <div class="case-detail"><h3>Date</h3><p>${caseData[2]}</p></div>
+                <div class="case-detail"><h3>Case Type</h3><p>${caseData[3]}</p></div>
+                <div class="case-detail"><h3>Plaintiff</h3><p>${caseData[4]}</p></div>
+                <div class="case-detail"><h3>Defendant</h3><p>${caseData[5]}</p></div>
+                <div class="case-detail"><h3>Description</h3><p>${caseData[6]}</p></div>
+            `;
+            document.getElementById("caseDetails").innerHTML = caseDetails;
+            document.getElementById("caseModal").style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById("caseModal").style.display = "none";
+        }
+
+        // Show lawyer selection modal
+        function openLawyerModal(index) {
+            selectedCaseIndex = index;
+            document.getElementById("lawyerModal").style.display = "block";
+        }
+
+        function closeLawyerModal() {
+            document.getElementById("lawyerModal").style.display = "none";
+        }
+
+        // Select lawyer
+        // Select lawyer with confirmation
+function selectLawyer() {
+    const lawyerId = document.getElementById("lawyerSelect").value;
+    if (lawyerId) {
+        const caseId = cases[selectedCaseIndex][7]; // Assuming the 8th element is case_id
+        const caseNumber = cases[selectedCaseIndex][1];
+        const caseTitle = cases[selectedCaseIndex][0];
+        
+        // Ask for confirmation before proceeding
+        const confirmMessage = `Are you sure you want to assign the selected lawyer to the case "${caseTitle}" (Case Number: ${caseNumber})?`;
+        if (confirm(confirmMessage)) {
+            // Send the notification to the server
+            fetch('/user/my_cases', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    lawyer_id: lawyerId,
+                    case_id: caseId,
+                    message: `You have been assigned to the case "${caseTitle}" (Case Number: ${caseNumber}).`
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Lawyer assigned and notified successfully!');
+                    closeLawyerModal();
+                } else {
+                    alert('Failed to send notification. Please try again.');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('An error occurred while sending the notification.');
+            });
+        }
+    } else {
+        alert("Please select a lawyer.");
+    }
+}
+
+        
+    </script>
+</body>
+</html>

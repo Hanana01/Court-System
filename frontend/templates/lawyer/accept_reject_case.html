@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DCCMS - Lawyer Notifications</title>
+    <link rel="stylesheet" href="../static/styles/admin/add.css" />
+    {% include 'index_lawyer.html' %}
+    <style>
+        .notifications-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .notification1 {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification1 p {
+            margin: 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .view-button, .accept-button, .reject-button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .view-button {
+            background-color: #007bff;
+        }
+
+        .accept-button {
+            background-color: #28a745;
+        }
+
+        .reject-button {
+            background-color: #dc3545;
+        }
+
+        .status {
+            padding: 8px 12px;
+            border-radius: 5px;
+            color: #fff;
+        }
+
+        .status.accepted {
+            background-color: #28a745;
+        }
+
+        .status.rejected {
+            background-color: #dc3545;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 60%;
+            margin: auto;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover, .close:focus {
+            color: red;
+            cursor: pointer;
+        }
+
+        .case-detail {
+            margin-bottom: 15px;
+        }
+
+        .case-detail h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .case-detail p {
+            margin: 5px 0 0 0;
+            font-size: 1rem;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Notifications</h1>
+        <div class="notifications-container">
+            {% if notifications|length > 0 %}
+                {% for notification in notifications %}
+                <div class="notification1">
+                    <p>{{ notification.message }}</p>
+                    <div class="action-buttons">
+                        <!-- Button to open case details modal -->
+                        <button class="view-button" onclick="showCaseDetails({{ loop.index0 }})">View Case</button>
+
+                        <!-- Display status or Accept/Reject buttons based on notification status -->
+                        {% if notification.status == 'accepted' %}
+                            <span class="status accepted">Accepted</span>
+                        {% elif notification.status == 'rejected' %}
+                            <span class="status rejected">Rejected</span>
+                        {% else %}
+                            <!-- Accept and Reject buttons -->
+                            <button class="accept-button" onclick="respondToCase({{ notification.case_id }}, 'accept')">Accept</button>
+                            <button class="reject-button" onclick="respondToCase({{ notification.case_id }}, 'reject')">Reject</button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No notifications found.</p>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Case Details Modal -->
+    <div id="caseModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h1>Case Details</h1>
+            <div id="caseDetails"></div>
+            <a href="javascript:void(0)" class="back-button" onclick="closeModal()">Back to Notifications</a>
+        </div>
+    </div>
+
+    <script>
+        const notifications = {{ notifications|tojson }}; // Convert the notifications array to JSON
+
+        // Show case details modal
+        function showCaseDetails(index) {
+            const notification = notifications[index];
+            const caseDetails = `
+                <div class="case-detail"><h3>Case Title</h3><p>${notification.case_title}</p></div>
+                <div class="case-detail"><h3>Case Number</h3><p>${notification.case_number}</p></div>
+                <div class="case-detail"><h3>Date</h3><p>${notification.date}</p></div>
+                <div class="case-detail"><h3>Case Type</h3><p>${notification.type}</p></div>
+                <div class="case-detail"><h3>Plaintiff</h3><p>${notification.plaintiff}</p></div>
+                <div class="case-detail"><h3>Defendant</h3><p>${notification.defendant}</p></div>
+                <div class="case-detail"><h3>Description</h3><p>${notification.description}</p></div>
+            `;
+            document.getElementById("caseDetails").innerHTML = caseDetails;
+            document.getElementById("caseModal").style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById("caseModal").style.display = "none";
+        }
+
+        // Respond to case - Accept or Reject
+        function respondToCase(caseId, response) {
+            const confirmMessage = `Are you sure you want to ${response} this case?`;
+            if (confirm(confirmMessage)) {
+                fetch('/lawyer/respond_case', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        case_id: caseId,
+                        response: response
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`Case ${response}ed successfully!`);
+                        location.reload(); // Refresh the page to reflect the updated status
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    alert('An error occurred while responding to the case.');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

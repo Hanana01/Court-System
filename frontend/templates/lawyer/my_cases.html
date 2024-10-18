@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Cases</title>
+    <link rel="stylesheet" href="../static/styles/admin/add.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMnG8tT3X44Ff5wFp3E5fS4aKxvDAHqgB+dAhA" crossorigin="anonymous" />
+    {% include 'index_lawyer.html' %}
+    <style>
+       
+
+        .cases-container {
+            width: 82%;
+            margin-left: 18%;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+        }
+
+        .search-container input {
+            padding: 10px;
+            width: 100%;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .category {
+            margin-bottom: 30px;
+            background-color: #ccf9ff;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        table {
+            width: 90%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #e8f0fe;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 60%;
+            margin: auto;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover, .close:focus {
+            color: red;
+            cursor: pointer;
+        }
+
+        .case-detail {
+            margin-bottom: 15px;
+        }
+
+        .case-detail h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .case-detail p {
+            margin: 5px 0 0 0;
+            font-size: 1rem;
+            word-wrap: break-word;
+        }
+
+        .view-button {
+            padding: 8px 12px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .view-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="cases-container">
+        <h1>Assigned Cases</h1>
+
+        <!-- Search Input -->
+        <div class="search-container">
+            <input type="text" id="caseSearch" placeholder="Search by Case Number..." oninput="filterCases()" />
+        </div>
+
+        <!-- Categories -->
+        <div class="category" id="acceptedCases">
+            <h2>Accepted Cases</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Case ID</th>
+                        <th>Case Title</th>
+                        <th>Case Number</th>
+                        <th>Date</th>
+                        <th>Case Type</th>
+                        <th>Plaintiff</th>
+                        <th>Defendant</th>
+                        <th>Client Name</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for case in cases if case.status == 'accepted' %}
+                    <tr>
+                        <td>{{ case.case_id }}</td>
+                        <td>{{ case.case_title }}</td>
+                        <td>{{ case.case_number }}</td>
+                        <td>{{ case.date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ case.case_type }}</td>
+                        <td>{{ case.plaintiff }}</td>
+                        <td>{{ case.defendant }}</td>
+                        <td>{{ case.client_name }}</td>
+                        <td>{{ case.status.capitalize() }}</td>
+                        <td>
+                            <button class="view-button" onclick="showCaseDetails({{ loop.index0 }})">View</button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="10">No accepted cases.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="category" id="rejectedCases">
+            <h2>Rejected Cases</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Case ID</th>
+                        <th>Case Title</th>
+                        <th>Case Number</th>
+                        <th>Date</th>
+                        <th>Case Type</th>
+                        <th>Plaintiff</th>
+                        <th>Defendant</th>
+                        <th>Client Name</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for case in cases if case.status == 'rejected' %}
+                    <tr>
+                        <td>{{ case.case_id }}</td>
+                        <td>{{ case.case_title }}</td>
+                        <td>{{ case.case_number }}</td>
+                        <td>{{ case.date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ case.case_type }}</td>
+                        <td>{{ case.plaintiff }}</td>
+                        <td>{{ case.defendant }}</td>
+                        <td>{{ case.client_name }}</td>
+                        <td>{{ case.status.capitalize() }}</td>
+                        <td>
+                            <button class="view-button" onclick="showCaseDetails({{ loop.index0 }})">View</button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="10">No rejected cases.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="category" id="pendingCases">
+            <h2>Pending Cases</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Case ID</th>
+                        <th>Case Title</th>
+                        <th>Case Number</th>
+                        <th>Date</th>
+                        <th>Case Type</th>
+                        <th>Plaintiff</th>
+                        <th>Defendant</th>
+                        <th>Client Name</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for case in cases if case.status == 'pending' %}
+                    <tr>
+                        <td>{{ case.case_id }}</td>
+                        <td>{{ case.case_title }}</td>
+                        <td>{{ case.case_number }}</td>
+                        <td>{{ case.date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ case.case_type }}</td>
+                        <td>{{ case.plaintiff }}</td>
+                        <td>{{ case.defendant }}</td>
+                        <td>{{ case.client_name }}</td>
+                        <td>{{ case.status.capitalize() }}</td>
+                        <td>
+                            <button class="view-button" onclick="showCaseDetails({{ loop.index0 }})">View</button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="10">No pending cases.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Case Details Modal -->
+    <div id="caseModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Case Details</h2>
+            <div id="caseDetails"></div>
+        </div>
+    </div>
+
+    <script>
+        const cases = {{ cases|tojson }};
+        
+        function filterCases() {
+            const searchInput = document.getElementById('caseSearch').value.toLowerCase();
+            const categories = ['acceptedCases', 'rejectedCases', 'pendingCases'];
+            
+            categories.forEach(category => {
+                const table = document.querySelector(`#${category} table tbody`);
+                const rows = table.getElementsByTagName('tr');
+
+                for (let i = 0; i < rows.length; i++) {
+                    const cells = rows[i].getElementsByTagName('td');
+                    const caseNumberCell = cells[2];
+                    if (caseNumberCell) {
+                        const caseNumber = caseNumberCell.textContent.toLowerCase();
+                        rows[i].style.display = caseNumber.includes(searchInput) ? '' : 'none';
+                    }
+                }
+            });
+        }
+
+        function showCaseDetails(index) {
+            const caseDetail = cases[index];
+            const caseDetailsDiv = document.getElementById('caseDetails');
+            caseDetailsDiv.innerHTML = `
+                <div class="case-detail">
+                    <h3>${caseDetail.case_title}</h3>
+                    <p><strong>Case ID:</strong> ${caseDetail.case_id}</p>
+                    <p><strong>Case Number:</strong> ${caseDetail.case_number}</p>
+                    <p><strong>Date:</strong> ${caseDetail.date}</p>
+                    <p><strong>Case Type:</strong> ${caseDetail.case_type}</p>
+                    <p><strong>Plaintiff:</strong> ${caseDetail.plaintiff}</p>
+                    <p><strong>Defendant:</strong> ${caseDetail.defendant}</p>
+                    <p><strong>Client Name:</strong> ${caseDetail.client_name}</p>
+                    <p><strong>Status:</strong> ${caseDetail.status}</p>
+                </div>
+            `;
+            document.getElementById('caseModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('caseModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('caseModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
