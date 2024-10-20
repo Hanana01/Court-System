@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.security import check_password_hash
+from werkzeug.security import generate_password_hash
 from backend.user.routes import user_bp
 from backend.admin.routes import admin_bp
 from backend.lawyer.routes import lawyer_bp
@@ -21,6 +22,14 @@ app.config['MYSQL_DB'] = 'districtcourt'
 
 # Initialize MySQL
 mysql.init_app(app)
+
+
+# Register the blueprints
+app.register_blueprint(user_bp, url_prefix='/user')
+app.register_blueprint(admin_bp, url_prefix='/admin')
+app.register_blueprint(lawyer_bp, url_prefix='/lawyer')
+app.register_blueprint(judge_bp, url_prefix='/judge')
+
 
 def create_database_and_tables():
     db = None
@@ -45,7 +54,6 @@ def create_database_and_tables():
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )''')
         
-        
         cursor.execute(''' CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
             fullname VARCHAR(255) NOT NULL,
@@ -59,8 +67,7 @@ def create_database_and_tables():
             gender ENUM('male', 'female', 'other')   
         )''');
         
-        
-         # Create cases table
+        # Create cases table
         cursor.execute('''CREATE TABLE IF NOT EXISTS cases (
             id INT AUTO_INCREMENT PRIMARY KEY,
             case_title VARCHAR(255) NOT NULL,
@@ -82,8 +89,8 @@ def create_database_and_tables():
             is_read BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id)
-    )
-''')
+        )
+        ''')
         
         # Create lawyer_notification table
         cursor.execute(''' CREATE TABLE IF NOT EXISTS lawyer_notification (
@@ -97,10 +104,20 @@ def create_database_and_tables():
             FOREIGN KEY (lawyer_id) REFERENCES users(id),
             FOREIGN KEY (case_id) REFERENCES cases(id),
             FOREIGN KEY (client_id) REFERENCES users(id)
-    )
-''');
+        )
+        ''')
+        
+        # Insert default admin user if it doesn't exist
+        cursor.execute('SELECT * FROM users WHERE username = %s', ('admin',))
+        admin_user = cursor.fetchone()
 
-
+        if not admin_user:  # Check if the admin user already exists
+            # Use werkzeug.security to hash the password before inserting
+            hashed_password = generate_password_hash('1234')  # Replace 'admin_password' with your desired password
+            cursor.execute('''
+                INSERT INTO users (fullname, username, role, password)
+                VALUES (%s, %s, %s, %s)
+            ''', ('Super Admin', 'default_admin', 'Admin', hashed_password))
 
         db.commit()
 
@@ -110,48 +127,11 @@ def create_database_and_tables():
         if db:
             db.close()
 
+
 @app.route('/')
 def landing_page():
     return render_template('pre_index.html')
 
-# @app.route('/login', methods=['GET', 'POST'])
-# def login():
-#     session.clear()
-
-#     if request.method == 'POST':
-#         username = request.form['username']
-#         password = request.form['password']
-
-#         # Connect to the database
-#         conn = mysql.connection
-#         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
-
-#         # Query to fetch user details by username
-#         cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
-#         user = cursor.fetchone()
-
-#         if user and check_password_hash(user['password'], password):
-#             # Set session variables
-#             session['loggedin'] = True
-#             session['user_id'] = user['id']  
-#             session['username'] = user['username']
-#             session['role'] = user['role']
-
-
-#             # Redirect based on user role
-#             if user['role'] == 'Admin':
-#                 return redirect(url_for('admin.admin_index'))
-#             elif user['role'] == 'Judge':
-#                 return redirect(url_for('judge.judge_index'))
-#             elif user['role'] == 'Lawyer':
-#                 return redirect(url_for('lawyer.lawyer_index'))
-#             elif user['role'] == 'Public':
-#                 return redirect(url_for('user.user_index'))
-#         else:
-#             # Flash error message
-#             flash('Invalid username or password', 'error')
-#             return redirect(url_for('login'))
-#     return render_template('login.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -223,11 +203,7 @@ def logout():
     session.clear()  # Clear session data
     return jsonify({'status': 'success', 'message': 'Logged out successfully'})
 
-# Register the blueprints
-app.register_blueprint(user_bp, url_prefix='/user')
-app.register_blueprint(admin_bp, url_prefix='/admin')
-app.register_blueprint(lawyer_bp, url_prefix='/lawyer')
-app.register_blueprint(judge_bp, url_prefix='/judge')
+
 
 if __name__ == '__main__':
     # Initialize the database before running the app

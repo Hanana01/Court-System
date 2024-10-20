@@ -8,16 +8,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMnG8tT3X44Ff5wFp3E5fS4aKxvDAHqgB+dAhA" crossorigin="anonymous" />
     {% include 'index_user.html' %}
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f7f7f7;
-            margin: 0;
-            padding: 20px;
-        }
-
+             
         .cases-container {
-            max-width: 900px;
-            margin: 0 auto;
+            max-width: 1100px;
+            margin-left: 18rem;
             padding: 20px;
             background-color: #fff;
             border-radius: 10px;
@@ -162,6 +156,22 @@
             cursor: pointer;
         }
 
+        .pending-button {
+            background-color: yellow; /* Set the background color to yellow */
+            color: black; /* Optional: Set text color for better contrast */
+            border: 1px solid #ccc; /* Optional: Add a border */
+            cursor: not-allowed; /* Change cursor to indicate disabled state */
+        }
+        
+
+        /* Style for the disabled button */
+        .select-lawyer-button:disabled {
+            background-color: green !important; /* Force background color to green */
+            color: white; /* Optional: Ensure text is readable */
+            cursor: not-allowed; /* Optional: Show a 'not-allowed' cursor */
+            opacity: 1; /* Remove default opacity reduction on disabled buttons */
+
+        }
     </style>
 </head>
 <body>
@@ -193,10 +203,25 @@
                         <td class="action-buttons">
                             <!-- View button that opens the modal -->
                             <button class="view-button" onclick="showCaseDetails({{ loop.index0 }})">View</button>
-
-                            <!-- Button to open lawyer selection modal -->
-                            <button class="select-lawyer-button" onclick="openLawyerModal({{ loop.index0 }})">Select Lawyer</button>
-                        </td>
+                            
+                            <!-- Button to open lawyer selection modal, disabled based on acceptance status -->
+                            <button 
+                                class="select-lawyer-button 
+                                    {% if case[8] == 'pending' %} pending-button {% endif %}"
+                                onclick="openLawyerModal({{ loop.index0 }})"
+                                {% if case[8] == 'accepted' or case[8] == 'pending' %} disabled {% endif %}>
+                                
+                                {% if case[8] == 'accepted' %}
+                                    Lawyer accepted your case
+                                {% elif case[8] == 'rejected' %}
+                                    Select Lawyer
+                                {% elif case[8] == 'pending' %} 
+                                    Lawyer is still pending
+                                {% else %}
+                                    Select Lawyer
+                                {% endif %}
+                            </button>
+                        </td>                                              
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -233,7 +258,7 @@
     </div>
 
     <script>
-        const cases = {{ cases|tojson }}; // Convert the cases array to JSON
+        const cases = {{ cases|tojson }}; 
         let selectedCaseIndex = null;
 
         // Show case details modal
@@ -266,50 +291,46 @@
             document.getElementById("lawyerModal").style.display = "none";
         }
 
-        // Select lawyer
-        // Select lawyer with confirmation
-function selectLawyer() {
-    const lawyerId = document.getElementById("lawyerSelect").value;
-    if (lawyerId) {
-        const caseId = cases[selectedCaseIndex][7]; // Assuming the 8th element is case_id
-        const caseNumber = cases[selectedCaseIndex][1];
-        const caseTitle = cases[selectedCaseIndex][0];
-        
-        // Ask for confirmation before proceeding
-        const confirmMessage = `Are you sure you want to assign the selected lawyer to the case "${caseTitle}" (Case Number: ${caseNumber})?`;
-        if (confirm(confirmMessage)) {
-            // Send the notification to the server
-            fetch('/user/my_cases', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    lawyer_id: lawyerId,
-                    case_id: caseId,
-                    message: `You have been assigned to the case "${caseTitle}" (Case Number: ${caseNumber}).`
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Lawyer assigned and notified successfully!');
-                    closeLawyerModal();
-                } else {
-                    alert('Failed to send notification. Please try again.');
+        // Select lawyer and update button to 'Requested'
+        function selectLawyer() {
+            const lawyerId = document.getElementById("lawyerSelect").value;
+            if (lawyerId) {
+                const caseId = cases[selectedCaseIndex][7];
+                const caseNumber = cases[selectedCaseIndex][1];
+                const caseTitle = cases[selectedCaseIndex][0];
+                
+                const confirmMessage = `Are you sure you want to assign the selected lawyer to the case "${caseTitle}" (Case Number: ${caseNumber})?`;
+                if (confirm(confirmMessage)) {
+                    fetch('/user/my_cases', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            lawyer_id: lawyerId,
+                            case_id: caseId,
+                            message: `You have been assigned to the case "${caseTitle}" (Case Number: ${caseNumber}).`
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Lawyer assigned and notified successfully!');
+                            closeLawyerModal();
+                            
+                        } else {
+                            alert('Failed to send notification. Please try again.');
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                        alert('An error occurred while sending the notification.');
+                    });
                 }
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                alert('An error occurred while sending the notification.');
-            });
+            } else {
+                alert("Please select a lawyer.");
+            }
         }
-    } else {
-        alert("Please select a lawyer.");
-    }
-}
-
-        
     </script>
 </body>
 </html>

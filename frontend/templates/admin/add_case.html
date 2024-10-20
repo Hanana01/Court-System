@@ -101,7 +101,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Fetch the users and populate the select fields
     function fetchUsers() {
-        fetch('/admin/users')  
+        fetch('/admin/public_users')  
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
@@ -136,10 +136,18 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('addCaseForm').addEventListener('submit', function(event) {
         event.preventDefault(); // Prevent default form submission
 
-        const formData = new FormData(this);
-
+        const plaintiffName = document.getElementById('plaintiffName').value;
+        const defendantName = document.getElementById('defendantName').value;
         const messageDiv = document.getElementById('message');
         messageDiv.innerHTML = ''; // Clear any existing messages
+
+        // Check if plaintiff and defendant are the same
+        if (plaintiffName === defendantName) {
+            messageDiv.innerHTML = `<p style="color: red;">Plaintiff and Defendant cannot be the same person. Please choose different names.</p>`;
+            return;
+        }
+
+        const formData = new FormData(this);
 
         fetch('/admin/add_case', {
             method: 'POST',

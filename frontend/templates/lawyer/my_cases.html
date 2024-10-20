@@ -45,7 +45,7 @@
         }
 
         table {
-            width: 90%;
+            width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
@@ -147,13 +147,9 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Case ID</th>
-                        <th>Case Title</th>
-                        <th>Case Number</th>
+                        <th>Case Title</th>   
                         <th>Date</th>
                         <th>Case Type</th>
-                        <th>Plaintiff</th>
-                        <th>Defendant</th>
                         <th>Client Name</th>
                         <th>Status</th>
                         <th>Action</th>
@@ -162,13 +158,9 @@
                 <tbody>
                     {% for case in cases if case.status == 'accepted' %}
                     <tr>
-                        <td>{{ case.case_id }}</td>
                         <td>{{ case.case_title }}</td>
-                        <td>{{ case.case_number }}</td>
                         <td>{{ case.date.strftime('%Y-%m-%d') }}</td>
                         <td>{{ case.case_type }}</td>
-                        <td>{{ case.plaintiff }}</td>
-                        <td>{{ case.defendant }}</td>
                         <td>{{ case.client_name }}</td>
                         <td>{{ case.status.capitalize() }}</td>
                         <td>
@@ -189,13 +181,9 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Case ID</th>
-                        <th>Case Title</th>
-                        <th>Case Number</th>
+                        <th>Case Title</th>   
                         <th>Date</th>
                         <th>Case Type</th>
-                        <th>Plaintiff</th>
-                        <th>Defendant</th>
                         <th>Client Name</th>
                         <th>Status</th>
                         <th>Action</th>
@@ -204,13 +192,10 @@
                 <tbody>
                     {% for case in cases if case.status == 'rejected' %}
                     <tr>
-                        <td>{{ case.case_id }}</td>
+                        
                         <td>{{ case.case_title }}</td>
-                        <td>{{ case.case_number }}</td>
                         <td>{{ case.date.strftime('%Y-%m-%d') }}</td>
                         <td>{{ case.case_type }}</td>
-                        <td>{{ case.plaintiff }}</td>
-                        <td>{{ case.defendant }}</td>
                         <td>{{ case.client_name }}</td>
                         <td>{{ case.status.capitalize() }}</td>
                         <td>
@@ -231,13 +216,9 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Case ID</th>
-                        <th>Case Title</th>
-                        <th>Case Number</th>
+                        <th>Case Title</th>   
                         <th>Date</th>
                         <th>Case Type</th>
-                        <th>Plaintiff</th>
-                        <th>Defendant</th>
                         <th>Client Name</th>
                         <th>Status</th>
                         <th>Action</th>
@@ -246,13 +227,9 @@
                 <tbody>
                     {% for case in cases if case.status == 'pending' %}
                     <tr>
-                        <td>{{ case.case_id }}</td>
                         <td>{{ case.case_title }}</td>
-                        <td>{{ case.case_number }}</td>
                         <td>{{ case.date.strftime('%Y-%m-%d') }}</td>
                         <td>{{ case.case_type }}</td>
-                        <td>{{ case.plaintiff }}</td>
-                        <td>{{ case.defendant }}</td>
                         <td>{{ case.client_name }}</td>
                         <td>{{ case.status.capitalize() }}</td>
                         <td>

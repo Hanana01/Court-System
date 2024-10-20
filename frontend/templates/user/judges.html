@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lawyers</title>
+    <link rel="stylesheet" href="../static/styles/admin/add.css">
+    {% include 'index_user.html' %}
+    <style>
+        /* Add your styling here */
+       
+        .heading {
+            font-size: 28px;
+            margin-bottom: 30px;
+            text-align: center;
+            color: #333;
+            font-weight: 600;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        tr:nth-child(even) td {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <div class="container">
+        <h1 class="heading">Judges List</h1>
+        
+        <!-- Judges Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Full Name</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Address</th>
+                    <th>Contact</th>
+                    <th>Email</th>
+                    <th>NIC</th>
+                    <th>Gender</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for judge in judges %}
+                <tr>
+                    <td>{{ judge.id }}</td>
+                    <td>{{ judge.fullname }}</td>
+                    <td>{{ judge.username }}</td>
+                    <td>{{ judge.role }}</td>
+                    <td>{{ judge.address }}</td>
+                    <td>{{ judge.contact }}</td>
+                    <td>{{ judge.email }}</td>
+                    <td>{{ judge.nic }}</td>
+                    <td>{{ judge.gender }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

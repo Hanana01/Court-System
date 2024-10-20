@@ -113,53 +113,6 @@ def respond_case():
         return jsonify({"success": False, "message": "Invalid response."}), 400
 
 
-
-# @lawyer_bp.route('/my_cases', methods=['GET'])
-# def my_cases():
-#     if 'loggedin' in session:
-#         user_id = session['user_id']
-#         conn = mysql.connection
-#         cursor = conn.cursor()
-
-#         # Query to fetch cases assigned to the logged-in lawyer, including the client name
-#         cursor.execute(''' 
-#             SELECT cn.case_id, c.case_title, c.case_number, c.date, c.case_type,
-#                    p.fullname AS plaintiff_name, d.fullname AS defendant_name,
-#                    u.fullname AS client_name,  -- Added this line to get the client name
-#                    cn.status, cn.message
-#             FROM lawyer_notification cn
-#             JOIN cases c ON c.id = cn.case_id
-#             LEFT JOIN users p ON p.username = c.plaintiff_name
-#             LEFT JOIN users d ON d.username = c.defendant_name
-#             LEFT JOIN users u ON u.id = cn.client_id  -- Joining users table to get client name
-#             WHERE cn.lawyer_id = %s
-#         ''', (user_id,))
-
-#         cases = cursor.fetchall()
-        
-#         # Structure cases into a list of dictionaries
-#         cases_list = []
-#         for case in cases:
-#             cases_list.append({
-#                 "case_id": case[0],
-#                 "case_title": case[1],
-#                 "case_number": case[2],
-#                 "date": case[3],
-#                 "case_type": case[4],
-#                 "plaintiff": case[5],
-#                 "defendant": case[6],
-#                 "client_name": case[7],  # Storing client name
-#                 "status": case[8],
-#                 "message": case[9]  # Adjusted index for message
-#             })
-
-#         return render_template('lawyer/my_cases.html', cases=cases_list)
-
-#     return redirect(url_for('user.login'))
-
-
-
-
 @lawyer_bp.route('/my_cases', methods=['GET'])
 def my_cases():
     if 'loggedin' in session:
@@ -200,5 +153,91 @@ def my_cases():
             })
 
         return render_template('lawyer/my_cases.html', cases=cases_list)
+
+    return redirect(url_for('user.login'))
+
+
+@lawyer_bp.route('/all_lawyers', methods=['GET'])
+def display_all_lawyers():
+    if 'loggedin' in session:
+        conn = mysql.connection
+        cursor = conn.cursor()
+
+        search_query = request.args.get('search', '').strip()
+
+        # Modify the query to fetch lawyers based on search input
+        if search_query:
+            cursor.execute('''
+                SELECT id, fullname, username, role, address, contact, email, nic, gender
+                FROM users 
+                WHERE role = 'lawyer' AND fullname LIKE %s
+            ''', ('%' + search_query + '%',))
+        else:
+            # Query to fetch all lawyers' details if no search query is provided
+            cursor.execute('''
+                SELECT id, fullname, username, role, address, contact, email, nic, gender
+                FROM users 
+                WHERE role = 'lawyer'
+            ''')
+
+        lawyers = cursor.fetchall()
+        
+        # Structure lawyers into a list of dictionaries
+        lawyers_list = []
+        for lawyer in lawyers:
+            lawyers_list.append({
+                "id": lawyer[0],
+                "fullname": lawyer[1],
+                "username": lawyer[2],
+                "role": lawyer[3],
+                "address": lawyer[4],
+                "contact": lawyer[5],
+                "email": lawyer[6],
+                "nic": lawyer[7],
+                "gender": lawyer[8]
+            })
+
+        return render_template('/display_lawyers.html', lawyers=lawyers_list)
+
+    return redirect(url_for('user.login'))
+
+
+
+@lawyer_bp.route('/all_judges', methods=['GET'])
+def display_all_judges():
+    if 'loggedin' in session:
+        conn = mysql.connection
+        cursor = conn.cursor()
+
+        # Query to fetch all judges' details
+        cursor.execute('''
+            SELECT id, fullname, username, role, address, contact, email, nic, gender
+            FROM users 
+            WHERE role = 'Judge'
+        ''')
+
+        judges = cursor.fetchall()
+        
+        # Structure judges into a list of dictionaries
+        judges_list = []
+        for judge in judges:
+            judges_list.append({
+                "id": judge[0],
+                "fullname": judge[1],
+                "username": judge[2],
+                "role": judge[3],
+                "address": judge[4],
+                "contact": judge[5],
+                "email": judge[6],
+                "nic": judge[7],
+                "gender": judge[8]
+            })
+            
+             # Debug statement to print lawyers in the terminal
+        print("Lawyers fetched from the database:")
+        for judge in judges_list:
+            print(judge)
+
+        return render_template('/display_judges.html', judges=judges_list)
 
     return redirect(url_for('user.login'))

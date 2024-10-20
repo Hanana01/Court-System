@@ -60,6 +60,66 @@ def admin_addCase():
     return render_template('add_case.html')
 
 
+
+# @admin_bp.route('/add_case', methods=['GET', 'POST'])
+# def admin_addCase():
+#     if request.method == 'POST':
+#         case_title = request.form.get('caseTitle')
+#         case_number = request.form.get('caseNumber')
+#         date = request.form.get('date')
+#         case_type = request.form.get('caseType')
+#         plaintiff_name = request.form.get('plaintiffName')
+#         defendant_name = request.form.get('defendantName')
+#         description = request.form.get('description')
+
+#         try:
+#             cursor = mysql.connection.cursor()
+
+#             # Insert the case into the database
+#             cursor.execute('''
+#                 INSERT INTO cases (case_title, case_number, date, case_type, plaintiff_name, defendant_name, description)
+#                 VALUES (%s, %s, %s, %s, %s, %s, %s)
+#             ''', (case_title, case_number, date, case_type, plaintiff_name, defendant_name, description))
+
+#             # Get the ID of the plaintiff and defendant, but only if they are users with the role "Public"
+#             cursor.execute('SELECT id FROM users WHERE username = %s AND role = "Public"', (plaintiff_name,))
+#             plaintiff = cursor.fetchone()
+
+#             cursor.execute('SELECT id FROM users WHERE username = %s AND role = "Public"', (defendant_name,))
+#             defendant = cursor.fetchone()
+
+#             # Create notifications for the plaintiff and defendant
+#             if plaintiff:
+#                 cursor.execute('''
+#                     INSERT INTO notifications (user_id, message)
+#                     VALUES (%s, %s)
+#                 ''', (plaintiff[0], f'You have been registered as the plaintiff in a new case: {case_title}'))
+
+#             if defendant:
+#                 cursor.execute('''
+#                     INSERT INTO notifications (user_id, message)
+#                     VALUES (%s, %s)
+#                 ''', (defendant[0], f'A new case has been registered against you: {case_title}'))
+
+#             mysql.connection.commit()
+#             cursor.close()
+#             return jsonify({'status': 'success', 'message': 'Case added and notifications sent successfully!'})
+#         except Exception as e:
+#             return jsonify({'status': 'error', 'message': str(e)})
+
+#     # Retrieve users with the role "Public" for display in the form
+#     try:
+#         cursor = mysql.connection.cursor()
+#         cursor.execute('SELECT username FROM users WHERE role = "Public"')
+#         public_users = [row[0] for row in cursor.fetchall()]
+#         cursor.close()
+#     except Exception as e:
+#         public_users = []
+#         print(f"Error fetching public users: {str(e)}")
+
+#     return render_template('add_case.html', public_users=public_users)
+
+
 @admin_bp.route('/add_user', methods=['GET', 'POST'])
 def admin_addUser():
     if request.method == 'POST':
@@ -127,6 +187,20 @@ def admin_users():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
 
+
+@admin_bp.route('/public_users', methods=['GET'])
+def get_public_users():
+    try:
+        cursor = mysql.connection.cursor()
+        # Fetch only users with the role "Public"
+        cursor.execute('SELECT username FROM users WHERE role = "Public"')
+        public_users = cursor.fetchall()
+        cursor.close()
+
+        users_list = [{'username': user[0]} for user in public_users]
+        return jsonify({'status': 'success', 'users': users_list})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
 
 
 @admin_bp.route('/dashboard')

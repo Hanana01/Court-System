@@ -163,13 +163,13 @@
     border-radius: 16px;
     margin: 0 14px 0 12px;
     background: #cfcdcd;
-    padding: 5px;
+    padding: 0px;
   }
 
   .sidebar .profile-details .profile_name,
   .sidebar .profile-details .job {
     color: #fff;
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 500;
     
   }
