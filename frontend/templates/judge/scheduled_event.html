@@ -9,41 +9,6 @@
     <link rel="stylesheet" href="../static/styles/judge/events.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <style>
-        .status-scheduled {
-            color: blue;
-        }
-
-        .status-finished {
-            color: green;
-        }
-
-        .pagination-controls {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.4);
-            padding-top: 60px;
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-        }
-    </style>
 </head>
 <body>
     {% include 'index_judge.html' %}
@@ -92,8 +57,8 @@
                 </select><br><br>
 
                 <div class="modal-buttons">
-                    <button class="btn btn-success" id="saveEditEventBtn">Save Changes</button>
-                    <button class="btn btn-secondary" id="closeEditModalBtn">Cancel</button>
+                    <button class="save-btn" id="saveEditEventBtn">Save Changes</button>
+                    <button class="close-btn" id="closeEditModalBtn">Cancel</button>
                 </div>
             </div>
         </div>
@@ -186,101 +151,82 @@
             });
 
             $(document).on('click', '.finish-btn', function() {
-            var eventId = $(this).data('id');
+                var eventId = $(this).data('id');
 
-            // Show a confirmation prompt
-            var isConfirmed = confirm('Are you sure you want to mark this event as finished?');
+                // Show a confirmation prompt
+                var isConfirmed = confirm('Are you sure you want to mark this event as finished?');
 
-            if (isConfirmed) {
-                // If the user clicks "Yes" (OK), proceed to finish the event
-                $.ajax({
-                    url: '/judge/api/events/' + eventId,
-                    method: 'PUT',
-                    contentType: 'application/json',
-                    data: JSON.stringify({ status: 'finished' }),
-                    success: function() {
-                        loadEvents();  
-                    },
-                    error: function() {
-                        alert('Failed to finish the event.');
-                    }
-                });
-            }
-           
-        });
-
+                if (isConfirmed) {
+                    // If the user clicks "Yes" (OK), proceed to finish the event
+                    $.ajax({
+                        url: '/judge/api/events/' + eventId,
+                        method: 'PUT',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ status: 'finished' }),
+                        success: function() {
+                            loadEvents();  
+                        },
+                        error: function() {
+                            alert('Failed to finish the event.');
+                        }
+                    });
+                }
+            });
 
             $(document).on('click', '.edit-btn', function() {
                 var eventId = $(this).data('id');
                 var event = eventsData.find(e => e.id === eventId);
                 
                 $('#editEventTitle').val(event.title);
-                $('#editEventDate').val(event.event_date.substring(0, 10));
+                
+                // Convert the date to YYYY-MM-DD format
+                var eventDate = new Date(event.event_date);
+                var formattedDate = eventDate.toISOString().split('T')[0];  
+                $('#editEventDate').val(formattedDate);
+                
                 var [hours, minutes] = event.event_time.split(':').slice(0, 2);
                 $('#editEventHour').val(hours);
                 $('#editEventMinute').val(minutes);
 
-                $('#editEventModal').show();
-            });
+                $('#editEventModal').css('display', 'flex');
+                
+                // Save changes event handler
+                $('#saveEditEventBtn').off('click').on('click', function () {
+                    var updatedTitle = $('#editEventTitle').val();
+                    var updatedDate = $('#editEventDate').val();
+                    var updatedHour = $('#editEventHour').val();
+                    var updatedMinute = $('#editEventMinute').val();
+                    var updatedTime = `${updatedHour}:${updatedMinute}`;
 
-            $('#saveEditEventBtn').on('click', function() {
-                var title = $('#editEventTitle').val();
-                var date = $('#editEventDate').val();
-                var hour = $('#editEventHour').val();
-                var minute = $('#editEventMinute').val();
+                    var updatedEvent = {
+                        title: updatedTitle,
+                        event_date: updatedDate,
+                        event_time: updatedTime,
+                    };
 
-                var updatedEvent = {
-                    title: title,
-                    event_date: date,
-                    event_time: hour + ':' + minute,
-                    status: 'scheduled'
-                };
-
-                var eventId = eventsData.find(e => e.title === title).id;
-
-                $.ajax({
-                    url: '/judge/api/events/' + eventId,
-                    method: 'PUT',
-                    contentType: 'application/json',
-                    data: JSON.stringify(updatedEvent),
-                    success: function() {
-                        $('#editEventModal').hide();
-                        loadEvents();
-                    },
-                    error: function() {
-                        alert('Failed to save changes to the event.');
-                    }
+                    $.ajax({
+                        url: `/judge/api/editevents/${eventId}`, // Pass event ID to backend
+                        method: 'PUT',
+                        contentType: 'application/json',
+                        data: JSON.stringify(updatedEvent),
+                        success: function (response) {
+                            alert('Event updated successfully!');
+                            loadEvents(); // Reload events
+                            $('#editEventModal').hide(); // Hide modal after saving
+                        },
+                        error: function () {
+                            alert('Failed to update event.');
+                        }
+                    });
                 });
             });
 
             $('#closeEditModalBtn').on('click', function() {
                 $('#editEventModal').hide();
             });
-
-            $(window).on('click', function(event) {
-                if (event.target == document.getElementById('editEventModal')) {
-                    $('#editEventModal').hide();
-                }
-            });
-
-            $(document).on('click', '.delete-btn', function() {
-                var eventId = $(this).data('id');
-                if (confirm('Are you sure you want to delete this event?')) {
-                    $.ajax({
-                        url: '/judge/api/events/' + eventId,
-                        method: 'DELETE',
-                        success: function() {
-                            loadEvents();
-                        },
-                        error: function() {
-                            alert('Failed to delete the event.');
-                        }
-                    });
-                }
-            });
         });
 
-    $(document).on('click', '.delete-btn', function() {
+        $(document).on('click', '.delete-btn', function() {
     var eventId = $(this).data('id');
     
     var isConfirmed = confirm('Are you sure you want to delete this row?');
@@ -293,7 +239,6 @@
         updateTable();
     } 
 });
-
     </script>
 </body>
 </html>

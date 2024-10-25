@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCCMS - All Cases</title>
+    <link rel="stylesheet" href="../static/styles/admin/add.css">
+    {% include 'index_admin.html' %}
+</head>
+<body>
+    <main>
+        <h1 class="heading">ALL CASES</h1>
+        <div class="container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Case ID</th>
+                        <th>Plaintiff Name</th>
+                        <th>Plaintiff's Lawyer</th>
+                        <th>Defendant Name</th>
+                        <th>Defendant's Lawyer</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for case in cases %}
+                    <tr>
+                        <td>{{ case[0] }}</td> <!-- Case Title -->
+                        <td>{{ case[1] }}</td> <!-- Plaintiff Name -->
+                        <td> </td>
+                        <td>{{ case[2] }}</td> <!-- Defendant Name -->
+                        <td> </td>
+                        <td>
+                        <button class="view-btn" data-id="{{ case[0] }}">View</button>
+                        <a href="/admin/edit_case/{{ case[0] }}">
+                            <button class="edit-btn">Edit</button>
+                        </a>
+                        <button class="upload-btn" data-id="{{ case[0] }}" onclick="openUploadModal('{{ case[0] }}')">Upload</button>
+                    </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Upload Modal -->
+        <div id="uploadModal" style="display:none;">
+            <div class="modal-content">
+                <span class="close" onclick="closeUploadModal()">&times;</span>
+                <h2>Upload Document</h2>
+                <form id="uploadForm" action="/admin/upload_document" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" id="case_id" name="case_id" value="">
+                    <label for="file">Choose File:</label>
+                    <input type="file" id="file" name="file" required>
+                    <br>
+                    <label for="description">Description:</label>
+                    <textarea id="description" name="description" rows="4" cols="50" required></textarea>
+                    <br>
+                    <button type="submit">Upload</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function openUploadModal(caseId) {
+            document.getElementById('case_id').value = caseId;
+            document.getElementById('uploadModal').style.display = 'block';
+        }
+
+        function closeUploadModal() {
+            document.getElementById('uploadModal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

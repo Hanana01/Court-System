@@ -1,8 +1,85 @@
-from flask import Blueprint, render_template, request, flash, jsonify,session
+import os
+from werkzeug.utils import secure_filename
 from extensions import mysql
 from werkzeug.security import generate_password_hash
+from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for, send_from_directory
+
+
 
 admin_bp = Blueprint('admin', __name__, template_folder="../../frontend/templates/admin")
+
+# Specify the folder where uploaded files will be stored
+UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')  # Define upload path
+ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'jpg', 'png'}  # Adjust the file types as needed
+
+# Make sure the uploads directory exists
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@admin_bp.route('/upload_document', methods=['POST'])
+def upload_document():
+    if 'file' not in request.files:
+        flash('No file part', 'error')
+        return redirect(request.url)
+    
+    file = request.files['file']
+    case_id = request.form.get('case_id')
+    description = request.form.get('description')
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)  # Save the file to UPLOAD_FOLDER
+        
+        # Store only the relative file path in the database
+        conn = mysql.connection
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            INSERT INTO case_documents (case_id, document, description) 
+            VALUES (%s, %s, %s)
+        """, (case_id, file_path, description))
+        
+        conn.commit()
+        cursor.close()
+        flash('Document uploaded successfully', 'success')
+        return redirect(url_for('admin.admin_index'))
+    
+    flash('File type not allowed', 'error')
+    return redirect(url_for('admin.admin_index'))
+
+@admin_bp.route('/view_document/<int:document_id>')
+def view_document(document_id):
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT document FROM case_documents WHERE id = %s", (document_id,))
+    result = cursor.fetchone()
+    cursor.close()
+
+    if result:
+        document_path = result[0]  # Get file path from database
+        filename = os.path.basename(document_path)  # Extract the filename from the path
+        return send_from_directory(directory=UPLOAD_FOLDER, path=filename, as_attachment=False)
+    else:
+        flash('Document not found', 'error')
+        return redirect(url_for('admin.cases'))
+
+@admin_bp.route('/download_document/<int:document_id>')
+def download_document(document_id):
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT document FROM case_documents WHERE id = %s", (document_id,))
+    result = cursor.fetchone()
+    cursor.close()
+
+    if result:
+        document_path = result[0]  # Get file path from database
+        filename = os.path.basename(document_path)  # Extract the filename from the path
+        return send_from_directory(directory=UPLOAD_FOLDER, path=filename, as_attachment=True, mimetype='application/pdf')
+    else:
+        flash('Document not found', 'error')
+        return redirect(url_for('admin.cases'))
 
 @admin_bp.route('/')
 def admin_index():
@@ -156,8 +233,42 @@ def admin_users():
         return jsonify({'status': 'success', 'users': user_list})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
+    
 
+@admin_bp.route('/all_cases', methods=['GET'])
+def cases():
+    try:
+        cursor = mysql.connection.cursor()
+        # Query to get case title, plaintiff name, and defendant name
+        cursor.execute('''
+            SELECT id, plaintiff_name, defendant_name 
+            FROM cases
+        ''')
+        cases = cursor.fetchall()
+        cursor.close()
 
+        # Pass the cases data to the template
+        return render_template('all_cases.html', cases=cases)
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+    
+@admin_bp.route('/case_documents', methods=['GET'])
+def case_documents():
+    try:
+        cursor = mysql.connection.cursor()
+        # Fetch all documents
+        cursor.execute('''
+            SELECT id, case_id, description, document 
+            FROM case_documents
+        ''')
+        documents = cursor.fetchall()
+        cursor.close()
+
+        # Render the template with the documents data
+        return render_template('case_documents.html', documents=documents)
+    
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
 
 @admin_bp.route('/dashboard')
 def admin_dashboard():
@@ -166,6 +277,10 @@ def admin_dashboard():
 @admin_bp.route('/calendar')
 def admin_calendar():
     return render_template('admin_calendar.html')
+
+@admin_bp.route('/all_cases')
+def all_cases():
+    return render_template('all_cases.html')
 
 
 

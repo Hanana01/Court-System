@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory
+from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash
 from backend.user.routes import user_bp
 from backend.admin.routes import admin_bp
@@ -6,11 +7,12 @@ from backend.lawyer.routes import lawyer_bp
 from backend.judge.routes import judge_bp
 from extensions import mysql
 import MySQLdb
+import os
 from datetime import datetime
 
 app = Flask(__name__, template_folder="frontend/templates", static_folder="frontend/static")
 
-# secret key for the flash message
+# Secret key for the flash message
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 # MySQL configurations
@@ -19,8 +21,52 @@ app.config['MYSQL_USER'] = 'nihla'
 app.config['MYSQL_PASSWORD'] = 'EX6826679#'
 app.config['MYSQL_DB'] = 'districtcourt'
 
+# File upload configurations
+UPLOAD_FOLDER = 'uploads/'
+ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'docx'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Ensure the upload folder exists
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
 # Initialize MySQL
 mysql.init_app(app)
+
+# Helper function to check if the file type is allowed
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# File upload route
+@app.route('/upload_document', methods=['POST'])
+def upload_document():
+    # Check if the post request has the file part
+    if 'file' not in request.files:
+        return jsonify({'status': 'error', 'message': 'No file part'})
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'status': 'error', 'message': 'No selected file'})
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        
+        # You could insert a record of this upload in the database if needed
+        # conn = mysql.connection
+        # cursor = conn.cursor(MySQLdb.cursors.DictCursor)
+        # cursor.execute("INSERT INTO case_documents (case_id, document, description) VALUES (%s, %s, %s)",
+        #                (case_id, filename, description))
+        # conn.commit()
+
+        return jsonify({'status': 'success', 'message': 'File uploaded successfully', 'filename': filename})
+    else:
+        return jsonify({'status': 'error', 'message': 'File type not allowed'})
+
+# Route to serve uploaded files
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 def create_database_and_tables():
     db = None
@@ -58,7 +104,7 @@ def create_database_and_tables():
             nic VARCHAR(20),
             gender ENUM('male', 'female', 'other'),
             description VARCHAR(255)    
-        )''');
+        )''')
         
         
          # Create cases table
@@ -99,8 +145,18 @@ def create_database_and_tables():
             FOREIGN KEY (case_id) REFERENCES cases(id),
             FOREIGN KEY (client_id) REFERENCES users(id)
     )
-''');
-
+''')
+    
+    # Create case_documents table
+        cursor.execute('''CREATE TABLE IF NOT EXISTS case_documents (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            case_id INT NOT NULL,
+            document VARCHAR(255) NOT NULL,  -- For storing the file as binary data
+            description TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (case_id) REFERENCES cases(id)
+        )''')
 
 
         db.commit()
@@ -115,44 +171,6 @@ def create_database_and_tables():
 def landing_page():
     return render_template('pre_index.html')
 
-# @app.route('/login', methods=['GET', 'POST'])
-# def login():
-#     session.clear()
-
-#     if request.method == 'POST':
-#         username = request.form['username']
-#         password = request.form['password']
-
-#         # Connect to the database
-#         conn = mysql.connection
-#         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
-
-#         # Query to fetch user details by username
-#         cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
-#         user = cursor.fetchone()
-
-#         if user and check_password_hash(user['password'], password):
-#             # Set session variables
-#             session['loggedin'] = True
-#             session['user_id'] = user['id']  
-#             session['username'] = user['username']
-#             session['role'] = user['role']
-
-
-#             # Redirect based on user role
-#             if user['role'] == 'Admin':
-#                 return redirect(url_for('admin.admin_index'))
-#             elif user['role'] == 'Judge':
-#                 return redirect(url_for('judge.judge_index'))
-#             elif user['role'] == 'Lawyer':
-#                 return redirect(url_for('lawyer.lawyer_index'))
-#             elif user['role'] == 'Public':
-#                 return redirect(url_for('user.user_index'))
-#         else:
-#             # Flash error message
-#             flash('Invalid username or password', 'error')
-#             return redirect(url_for('login'))
-#     return render_template('login.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

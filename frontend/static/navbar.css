@@ -28,19 +28,20 @@ body {
 }
 
 .button1 {
-  background-image: linear-gradient(to right, #06002b, #c9c2c9);
-  color: #000000;
+  background-image: linear-gradient(to right, #4456daf7, #c9c2c9);
+  color: #030136;
   border: none;
   box-shadow: 0 0 5px rgb(0, 0, 0);
   margin-left: 1rem;
   border-radius: 20px;
   padding: 10px 40px;
   cursor: pointer;
-  font-weight: 1000;
+  font-weight: 900;
+  transition: background-color 0.3s, transform 0.2s; /* Add transition effects */
 }
 
 .button1:hover {
-  background-image: linear-gradient(to right, #c9c2c9, #06002b);
+  background-image: linear-gradient(to right, #c9c2c9, #4456daf7);
   transform: scale(1.05); /* the scale factor */
   transition: transform 0.3s ease; /* a smooth transition effect */
   box-shadow: 0 0 8px rgb(0, 0, 0);
