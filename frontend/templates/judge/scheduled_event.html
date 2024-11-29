@@ -115,10 +115,12 @@
                     if (event.status !== 'finished') {
                         row += '<button class="btn btn-success btn-sm finish-btn" data-id="' + event.id + '">Finish</button> ';
                         row += '<button class="btn btn-primary btn-sm edit-btn" data-id="' + event.id + '">Edit</button> ';
+                        row += '<button class="btn btn-danger btn-sm delete-btn" data-id="' + event.id + '">Delete</button>';
+                    } else {
+                        row += '<button class="btn btn-secondary btn-sm" disabled>Finished</button>';
                     }
 
-                    row += '<button class="btn btn-danger btn-sm delete-btn" data-id="' + event.id + '">Delete</button>' +
-                        '</td>' +
+                    row += '</td>' +
                         '</tr>';
                     tableBody.append(row);
                 }
@@ -153,21 +155,37 @@
             $(document).on('click', '.finish-btn', function() {
                 var eventId = $(this).data('id');
 
-                // Show a confirmation prompt
                 var isConfirmed = confirm('Are you sure you want to mark this event as finished?');
-
                 if (isConfirmed) {
-                    // If the user clicks "Yes" (OK), proceed to finish the event
                     $.ajax({
                         url: '/judge/api/events/' + eventId,
                         method: 'PUT',
                         contentType: 'application/json',
                         data: JSON.stringify({ status: 'finished' }),
                         success: function() {
+                            alert('Event marked as finished!');
                             loadEvents();  
                         },
                         error: function() {
                             alert('Failed to finish the event.');
+                        }
+                    });
+                }
+            });
+
+            $(document).on('click', '.delete-btn', function() {
+                var eventId = $(this).data('id');
+                var isConfirmed = confirm('Are you sure you want to delete this event?');
+                if (isConfirmed) {
+                    $.ajax({
+                        url: '/judge/api/events/' + eventId,
+                        method: 'DELETE',
+                        success: function() {
+                            alert('Event deleted successfully!');
+                            loadEvents();
+                        },
+                        error: function() {
+                            alert('Failed to delete event.');
                         }
                     });
                 }
@@ -179,7 +197,6 @@
                 
                 $('#editEventTitle').val(event.title);
                 
-                // Convert the date to YYYY-MM-DD format
                 var eventDate = new Date(event.event_date);
                 var formattedDate = eventDate.toISOString().split('T')[0];  
                 $('#editEventDate').val(formattedDate);
@@ -190,7 +207,6 @@
 
                 $('#editEventModal').css('display', 'flex');
                 
-                // Save changes event handler
                 $('#saveEditEventBtn').off('click').on('click', function () {
                     var updatedTitle = $('#editEventTitle').val();
                     var updatedDate = $('#editEventDate').val();
@@ -205,14 +221,14 @@
                     };
 
                     $.ajax({
-                        url: `/judge/api/editevents/${eventId}`, // Pass event ID to backend
+                        url: `/judge/api/editevents/${eventId}`,
                         method: 'PUT',
                         contentType: 'application/json',
                         data: JSON.stringify(updatedEvent),
-                        success: function (response) {
+                        success: function () {
                             alert('Event updated successfully!');
-                            loadEvents(); // Reload events
-                            $('#editEventModal').hide(); // Hide modal after saving
+                            loadEvents();
+                            $('#editEventModal').hide();
                         },
                         error: function () {
                             alert('Failed to update event.');
@@ -225,20 +241,6 @@
                 $('#editEventModal').hide();
             });
         });
-
-        $(document).on('click', '.delete-btn', function() {
-    var eventId = $(this).data('id');
-    
-    var isConfirmed = confirm('Are you sure you want to delete this row?');
-
-    if (isConfirmed) {
-        $(this).closest('tr').remove();
-                eventsData = eventsData.filter(event => event.id !== eventId);
-                totalRows = eventsData.length;
-        updatePaginationControls();
-        updateTable();
-    } 
-});
     </script>
 </body>
 </html>

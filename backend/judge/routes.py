@@ -96,3 +96,17 @@ def update_event(event_id):
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500
+
+# Delete an event
+@judge_bp.route('/api/events/<int:event_id>', methods=['DELETE'])
+def delete_event(event_id):
+    db = mysql.connection
+    cursor = db.cursor()
+    
+    try:
+        cursor.execute("DELETE FROM events WHERE id = %s", (event_id,))
+        db.commit()
+        return jsonify({'message': 'Event deleted successfully'})
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': str(e)}), 500
