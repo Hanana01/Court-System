@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit User</title>
+    <link rel="stylesheet" href="../static/styles/admin/add.css">
+    {% include 'index_admin.html' %}
+
+    <style>
+        /* Default button style */
+        button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        /* Add some margin and padding to the message div */
+        .message {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+       
+
+        /* Form label and input styling */
+        .row {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        .col-25 {
+            width: 25%;
+            padding-right: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .col-75 {
+            width: 75%;
+        }
+
+        input[type="text"], input[type="email"], select {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        /* Gender options styling */
+        .gender-options {
+            display: flex;
+            gap: 15px;
+        }
+
+        .gender-options label {
+            margin-right: 15px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+    </style>
+
+</head>
+<body>
+<main>
+    <div class="container">
+        <h1>Edit User</h1>
+
+        <!-- Display success or error messages -->
+        {% if message %}
+            <div class="message {{ status }}">
+                <p>{{ message }}</p>
+            </div>
+        {% endif %}
+
+        <form method="POST">
+            <div class="row">
+                <div class="col-25">
+                    <label for="fullname">Full Name:</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" name="fullname" id="fullname" value="{{ user.fullname }}" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="username">Username:</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" name="username" id="username" value="{{ user.username }}" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="role">Role:</label>
+                </div>
+                <div class="col-75">
+                    <select name="role" id="role" required>
+                        <option value="Admin" {% if user.role == 'Admin' %}selected{% endif %}>Admin</option>
+                        <option value="Judge" {% if user.role == 'Judge' %}selected{% endif %}>Judge</option>
+                        <option value="Lawyer" {% if user.role == 'Lawyer' %}selected{% endif %}>Lawyer</option>
+                        <option value="Public" {% if user.role == 'Public' %}selected{% endif %}>Public</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="address">Address:</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" name="address" id="address" value="{{ user.address }}" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="contact">Contact:</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" name="contact" id="contact" value="{{ user.contact }}" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="email">Email:</label>
+                </div>
+                <div class="col-75">
+                    <input type="email" name="email" id="email" value="{{ user.email }}" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="nic">NIC:</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" name="nic" id="nic" value="{{ user.nic }}" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="gender">Gender:</label>
+                </div>
+                <div class="col-75 gender-options">
+                    <label><input type="radio" name="gender" value="Male" {% if user.gender == 'Male' %}checked{% endif %}> Male</label>
+                    <label><input type="radio" name="gender" value="Female" {% if user.gender == 'Female' %}checked{% endif %}> Female</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <button type="submit" class="btn-success">Update User</button>
+            </div>
+        </form>
+    </div>
+</main>
+</body>
+</html>

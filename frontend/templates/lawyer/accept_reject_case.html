@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DCCMS - Lawyer Notifications</title>
+    <title>DCCMS - accept/reject cases</title>
     <link rel="stylesheet" href="../static/styles/admin/add.css" />
     {% include 'index_lawyer.html' %}
     <style>
@@ -59,9 +59,14 @@
         .accept-button {
             background-color: #28a745;
         }
+        
 
         .reject-button {
             background-color: #dc3545;
+        } 
+
+        .view-button:hover {
+            background-color: #084bff;
         }
 
         .status {
@@ -77,6 +82,7 @@
         .status.rejected {
             background-color: #dc3545;
         }
+
 
         /* Modal styles */
         .modal {
@@ -132,29 +138,32 @@
 </head>
 <body>
     <main>
-        <h1>Notifications</h1>
+        <h1>Accept/Reject Case</h1>
         <div class="notifications-container">
             {% if notifications|length > 0 %}
-                {% for notification in notifications %}
-                <div class="notification1">
-                    <p>{{ notification.message }}</p>
-                    <div class="action-buttons">
-                        <!-- Button to open case details modal -->
-                        <button class="view-button" onclick="showCaseDetails({{ loop.index0 }})">View Case</button>
-
-                        <!-- Display status or Accept/Reject buttons based on notification status -->
-                        {% if notification.status == 'accepted' %}
-                            <span class="status accepted">Accepted</span>
-                        {% elif notification.status == 'rejected' %}
-                            <span class="status rejected">Rejected</span>
-                        {% else %}
-                            <!-- Accept and Reject buttons -->
-                            <button class="accept-button" onclick="respondToCase({{ notification.case_id }}, 'accept')">Accept</button>
-                            <button class="reject-button" onclick="respondToCase({{ notification.case_id }}, 'reject')">Reject</button>
-                        {% endif %}
-                    </div>
+            {% for notification in notifications %}
+            <div class="notification1">
+                <p>{{ notification.message }}</p>
+                <div class="action-buttons">
+                    <!-- Button to open case details modal -->
+                    <button class="view-button" onclick="showCaseDetails({{ loop.index0 }})">View Case</button>
+            
+                    <!-- Display status or Accept/Reject buttons based on notification status -->
+                    {% if notification.status == 'accepted' %}
+                        <span class="status accepted">Accepted</span>
+                    {% elif notification.status == 'rejected' %}
+                        <span class="status rejected">Rejected</span>
+                    {% else %}
+                        <!-- Accept and Reject buttons are enabled only if status is neither accepted nor rejected -->
+                        <button class="accept-button" onclick="respondToCase({{ notification.case_id }}, 'accept')" 
+                                {% if notification.status in ['accepted', 'rejected'] %}disabled{% endif %}>Accept</button>
+                        <button class="reject-button" onclick="respondToCase({{ notification.case_id }}, 'reject')" 
+                                {% if notification.status in ['accepted', 'rejected'] %}disabled{% endif %}>Reject</button>
+                    {% endif %}
                 </div>
-                {% endfor %}
+            </div>
+            {% endfor %}
+            
             {% else %}
                 <p>No notifications found.</p>
             {% endif %}

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Hearing</title>
+    <link rel="stylesheet" href="../static/styles/admin/add.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-beta.1/css/select2.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-beta.1/js/select2.min.js"></script>
+    {% include 'index_admin.html' %}
+</head>
+<body>
+<main>
+    <h1 class="heading">CREATE NEW HEARING</h1>
+
+    <div class="container">
+        <form id="add-hearing-form" method="POST" novalidate>
+            <div class="row">
+                <div class="col-25">
+                    <label for="case_number">Case Number</label>
+                </div>
+                <div class="col-75">
+                    <select id="case_number" name="case_number" required>
+                        <option value="">Select Case Number</option>
+                        <!-- Options populated via AJAX -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="case_type">Case Type</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="case_type" readonly>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="case_title">Case Title</label>
+                </div>
+                <div class="col-75">
+                    <input type="text" id="case_title" readonly>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="hearing_date">Hearing Date</label>
+                </div>
+                <div class="col-75">
+                    <input type="date" id="hearing_date" name="hearing_date" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="hearing_description">Hearing Description</label>
+                </div>
+                <div class="col-75">
+                    <textarea id="hearing_description" name="hearing_description" rows="4" required></textarea>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25">
+                    <label for="highlights">Highlights</label>
+                </div>
+                <div class="col-75">
+                    <textarea id="highlights" name="highlights" rows="4" required></textarea>
+                </div>
+            </div>
+
+            <div class="row">
+                <input type="submit" value="Add Hearing">
+            </div>
+        </form>
+
+        <div id="message"></div>
+    </div>
+</main>
+
+<script>
+$(document).ready(function () {
+    // Fetch cases from the server
+    $.ajax({
+        url: '/admin/get_cases',
+        method: 'GET',
+        success: function (response) {
+            if (response.status === 'success') {
+                const cases = response.data;
+                const caseSelect = $('#case_number');
+
+                // Populate the dropdown with case_number
+                cases.forEach(caseItem => {
+                    caseSelect.append(
+                        `<option value="${caseItem.case_number}" data-type="${caseItem.case_type}" data-title="${caseItem.case_title}">
+                            ${caseItem.case_number} - ${caseItem.case_title}
+                        </option>`
+                    );
+                });
+
+                // Add event listener for selection
+                caseSelect.on('change', function () {
+                    const selectedOption = $(this).find(':selected');
+                    $('#case_type').val(selectedOption.data('type'));
+                    $('#case_title').val(selectedOption.data('title'));
+                });
+            }
+        },
+        error: function () {
+            $('#message').html('<p style="color: red;">Failed to load cases. Please try again.</p>');
+        }
+    });
+
+    // Enable dropdown search functionality
+    $('#case_number').select2({
+        placeholder: 'Search for a case number',
+        allowClear: true,
+    });
+
+    // Handle form submission via AJAX
+    $('#add-hearing-form').submit(function (e) {
+        e.preventDefault();
+        $('#message').html('');  // Clear previous messages
+        $.ajax({
+            url: '/admin/add_hearing',
+            method: 'POST',
+            data: $(this).serialize(),
+            success: function (response) {
+                if (response.status === 'success') {
+                    $('#message').html(`<p style="color: green;">${response.message}</p>`);
+                } else {
+                    $('#message').html(`<p style="color: red;">${response.message}</p>`);
+                }
+            },
+            error: function () {
+                $('#message').html('<p style="color: red;">An error occurred. Please try again.</p>');
+            }
+        });
+    });
+});
+</script>
+</body>
+</html>

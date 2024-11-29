@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
   <head>
@@ -35,6 +34,58 @@
       .logout {
         cursor: pointer; /* Make the logout icon look clickable */
       }
+
+      /* Modal Styles */
+      .modal {
+        display: none; /* Hidden by default */
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgb(0, 0, 0); /* Fallback color */
+        background-color: rgba(0, 0, 0, 0.4); /* Black with opacity */
+        padding-top: 60px;
+      }
+
+      /* Modal Content */
+      .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 30%;
+      }
+
+      /* Modal Buttons */
+      .modal-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+      }
+
+      .modal-buttons button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 10px;
+      }
+
+      .cancel-btn {
+        background-color: #f44336; /* Red */
+        color: white;
+        border: none;
+        margin-left: 2rem;
+      }
+
+      .confirm-btn {
+        background-color: #4caf50; /* Green */
+        color: white;
+        border: none;
+        margin-right: 2rem;
+      }
     </style>
   </head>
 
@@ -49,11 +100,7 @@
         </div>
       </form>
       <!-- Notification bell with a green dot for new notifications -->
-      <a
-        href="#"
-        class="notification"
-        style="position: relative"
-      >
+      <a href="#" class="notification" style="position: relative">
         <i class="bx bxs-bell" id="notification-bell"></i>
         <span class="notification-dot" id="notification-dot"></span>
       </a>
@@ -71,32 +118,6 @@
             <span class="link-name">Dashboard</span>
           </a>
         </li>
-        <!-- <li>
-          <div class="icon-link">
-            <a href="#">
-              <i class="bx bxs-user-circle"></i>
-              <span class="link-name">Lawyers</span>
-            </a>
-            <i class="bx bxs-chevron-down arrow"></i>
-          </div>
-          <ul class="sub-menu">
-            <li><a href="/admin/add_lawyer">Add Lawyers</a></li>
-            <li><a href="/admin/view_lawyers">View Lawyers</a></li>
-          </ul>
-        </li>
-        <li>
-          <div class="icon-link">
-            <a href="#">
-              <i class="bx bxs-briefcase"></i>
-              <span class="link-name">Judges</span>
-            </a>
-            <i class="bx bxs-chevron-down arrow"></i>
-          </div>
-          <ul class="sub-menu">
-            <li><a href="/admin/add_judge">Add Judges</a></li>
-            <li><a href="/admin/view_judges">View Judges</a></li>
-          </ul>
-        </li> -->
         <li>
           <div class="icon-link">
             <a href="#">
@@ -108,6 +129,7 @@
           <ul class="sub-menu">
             <li><a href="/admin/add_user">Add Users</a></li>
             <li><a href="/admin/users_list">View Users</a></li>
+            <li><a href="/admin/manage_users">Manage Users</a></li>
           </ul>
         </li>
         <li>
@@ -120,16 +142,40 @@
           </div>
           <ul class="sub-menu">
             <li><a href="/admin/add_case">Add Cases</a></li>
-            <li><a href="/admin/unfiled_cases">Unfiled Cases</a></li>
+            <li><a href="/admin/all_cases">View Cases</a></li>
+            <li><a href="/admin/case_documents">Case Documents</a></li>
             <li><a href="/admin/filed_cases">Filed Cases</a></li>
             <li><a href="/admin/solved_cases">Solved Cases</a></li>
           </ul>
         </li>
+
         <li>
-          <a href="/admin/calendar">
-            <i class="bx bxs-calendar-event"></i>
-            <span class="link-name">Calendar</span>
-          </a>
+          <div class="icon-link">
+            <a href="#">
+              <i class="bx bxs-spreadsheet"></i>
+              <span class="link-name">Hearings</span>
+            </a>
+            <i class="bx bxs-chevron-down arrow"></i>
+          </div>
+          <ul class="sub-menu">
+            <li><a href="/admin/hearings">Case Hearings</a></li>
+            <li><a href="/admin/add_hearing">Add Hearing</a></li>
+            <li><a href="/admin/manage_hearings">Manage Hearing</a></li>
+          </ul>
+        </li>
+
+        <li>
+          <div class="icon-link">
+            <a href="#">
+              <i class="bx bxs-calendar"></i>
+              <span class="link-name">Calendar</span>
+            </a>
+            <i class="bx bxs-chevron-down arrow"></i>
+          </div>
+          <ul class="sub-menu">
+            <li><a href="/admin/admin_calendar">Schedule Event</a></li>
+            <li><a href="/admin/scheduled_events_admin">Scheduled Events</a></li>
+          </ul>
         </li>
         <li>
           <a href="/admin/reports">
@@ -137,12 +183,22 @@
             <span class="link-name">Reports</span>
           </a>
         </li>
+
         <li>
-          <a href="/admin/settings">
-            <i class="bx bxs-cog"></i>
-            <span class="link-name">Settings</span>
-          </a>
+          <div class="icon-link">
+            <a href="#">
+              <i class="bx bxs-cog"></i>
+              <span class="link-name">Settings</span>
+            </a>
+            <i class="bx bxs-chevron-down arrow"></i>
+          </div>
+          <ul class="sub-menu">
+            <li><a href="/change_password">Change Password</a></li>
+            <li><a href="/change_password">Change Password</a></li>
+            <li><a href="#" id="logout">Logout</a></li>
+          </ul>
         </li>
+
         <li>
           <div class="profile-details">
             <div class="profile-content">
@@ -165,6 +221,17 @@
     <main>
       <div id="content"></div>
     </main>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logout-modal" class="modal">
+      <div class="modal-content">
+        <h2>Are you sure you want to logout?</h2>
+        <div class="modal-buttons">
+          <button class="cancel-btn" id="cancel-logout">Cancel</button>
+          <button class="confirm-btn" id="confirm-logout">Logout</button>
+        </div>
+      </div>
+    </div>
 
     <script>
       function loadPage(page, url) {
@@ -218,6 +285,17 @@
           });
       }
 
+      // Show the logout confirmation modal
+      function showLogoutModal() {
+        document.getElementById("logout-modal").style.display = "block";
+      }
+
+      // Hide the logout confirmation modal
+      function hideLogoutModal() {
+        document.getElementById("logout-modal").style.display = "none";
+      }
+
+      // Handle logout action
       function logoutUser() {
         fetch("/logout", { method: "POST" }) // Send POST request to log out the user
           .then((response) => response.json())
@@ -234,7 +312,16 @@
           });
       }
 
-      document.getElementById("logout").addEventListener("click", logoutUser); // Attach the logout event
+      // Attach event listeners
+      document
+        .getElementById("logout")
+        .addEventListener("click", showLogoutModal);
+      document
+        .getElementById("cancel-logout")
+        .addEventListener("click", hideLogoutModal);
+      document
+        .getElementById("confirm-logout")
+        .addEventListener("click", logoutUser);
 
       document.addEventListener("DOMContentLoaded", function () {
         loadProfile();

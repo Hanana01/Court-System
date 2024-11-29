@@ -1,6 +1,9 @@
 
 from flask import Blueprint, render_template, session,redirect, url_for,jsonify,request,flash
 from extensions import mysql
+from datetime import timedelta,datetime
+import MySQLdb
+from werkzeug.security import generate_password_hash,check_password_hash
 
 lawyer_bp = Blueprint('lawyer', __name__, template_folder="../../frontend/templates/lawyer")
 
@@ -10,9 +13,52 @@ def lawyer_index():
 
 
 
+# # Route to display notifications page
+# @lawyer_bp.route('/notifications', methods=['GET'])
+# def lawyer_notifications():
+#     if 'loggedin' in session:
+#         user_id = session['user_id']
+#         conn = mysql.connection
+#         cursor = conn.cursor()
+
+#         # Query to fetch notifications for the logged-in lawyer
+#         cursor.execute('''
+#             SELECT cn.case_id, cn.message, c.case_title, c.case_number, c.date, c.case_type,
+#                    p.fullname AS plaintiff_name, d.fullname AS defendant_name, c.description
+#             FROM lawyer_notification cn
+#             JOIN cases c ON c.id = cn.case_id
+#             LEFT JOIN users p ON p.username = c.plaintiff_name
+#             LEFT JOIN users d ON d.username = c.defendant_name
+#             WHERE cn.lawyer_id = %s
+#         ''', (user_id,))
+
+#         notifications = cursor.fetchall()
+        
+#         # Structure notifications into a list of dictionaries
+#         notifications_list = []
+#         for notification in notifications:
+#             notifications_list.append({
+#                 "case_id": notification[0],
+#                 "message": notification[1],
+#                 "case_title": notification[2],
+#                 "case_number": notification[3],
+#                 "date": notification[4],
+#                 "type": notification[5],
+#                 "plaintiff": notification[6],
+#                 "defendant": notification[7],
+#                 "description": notification[8]
+#             })
+
+#         return render_template('accept_reject_case.html', notifications=notifications_list)
+
+#     return redirect(url_for('user.login'))
+
+
+
+
 # Route to display notifications page
-@lawyer_bp.route('/notifications', methods=['GET'])
-def lawyer_notifications():
+@lawyer_bp.route('/lawyer_notifications', methods=['GET'])
+def lawyer_updated_notification():
     if 'loggedin' in session:
         user_id = session['user_id']
         conn = mysql.connection
@@ -46,13 +92,119 @@ def lawyer_notifications():
                 "description": notification[8]
             })
 
+        return render_template('lawyer_notification.html', notifications=notifications_list)
+
+    return redirect(url_for('user.login'))
+
+
+
+# Route to display notifications page
+@lawyer_bp.route('/accept_reject_cases', methods=['GET'])
+def lawyer_notifications():
+    if 'loggedin' in session:
+        user_id = session['user_id']
+        conn = mysql.connection
+        cursor = conn.cursor()
+
+        # Query to fetch notifications along with their status for the logged-in lawyer
+        cursor.execute('''
+            SELECT cn.case_id, cn.message, cn.status, c.case_title, c.case_number, c.date, c.case_type,
+                   p.fullname AS plaintiff_name, d.fullname AS defendant_name, c.description
+            FROM lawyer_notification cn
+            JOIN cases c ON c.id = cn.case_id
+            LEFT JOIN users p ON p.username = c.plaintiff_name
+            LEFT JOIN users d ON d.username = c.defendant_name
+            WHERE cn.lawyer_id = %s
+        ''', (user_id,))
+
+        notifications = cursor.fetchall()
+        
+        # Structure notifications into a list of dictionaries with status
+        notifications_list = []
+        for notification in notifications:
+            notifications_list.append({
+                "case_id": notification[0],
+                "message": notification[1],
+                "status": notification[2],  # Include the status here
+                "case_title": notification[3],
+                "case_number": notification[4],
+                "date": notification[5],
+                "type": notification[6],
+                "plaintiff": notification[7],
+                "defendant": notification[8],
+                "description": notification[9]
+            })
+
         return render_template('accept_reject_case.html', notifications=notifications_list)
 
     return redirect(url_for('user.login'))
 
 
 
-# Route to handle accept/reject response from the lawyer
+
+# # Route to handle accept/reject response from the lawyer
+# @lawyer_bp.route('/respond_case', methods=['POST'])
+# def respond_case():
+#     data = request.json
+#     case_id = data.get('case_id')
+#     response = data.get('response')
+#     user_id = session['user_id']  # Assuming you store user ID in the session
+
+#     if not case_id or not response:
+#         return jsonify({"success": False, "message": "Case ID and response are required."}), 400
+
+#     conn = mysql.connection
+#     cursor = conn.cursor()
+
+#     # Check if the case exists and fetch its current status
+#     cursor.execute(''' 
+#         SELECT status FROM lawyer_notification 
+#         WHERE case_id = %s AND lawyer_id = %s
+#     ''', (case_id, user_id))
+    
+#     case = cursor.fetchone()
+
+#     if not case:
+#         return jsonify({"success": False, "message": "Case not found."}), 404
+
+#     current_status = case[0]
+
+#     # Prevent action if the case is already accepted or rejected
+#     if current_status in ['accepted', 'rejected']:
+#         return jsonify({"success": False, "message": "Action already taken. You cannot modify the response."}), 400
+
+#     if response == "accept":
+#         # Update the status of the case to 'accepted'
+#         cursor.execute(''' 
+#             UPDATE lawyer_notification 
+#             SET status = 'accepted' 
+#             WHERE case_id = %s AND lawyer_id = %s
+#         ''', (case_id, user_id))
+        
+#         # Optionally, log the acceptance
+#         print(f"Case ID {case_id} has been accepted by Lawyer ID {user_id}.")
+#         conn.commit()
+#         return jsonify({"success": True, "message": "Case accepted."})
+        
+#     elif response == "reject":
+#         # Update the status of the case to 'rejected'
+#         cursor.execute(''' 
+#             UPDATE lawyer_notification 
+#             SET status = 'rejected' 
+#             WHERE case_id = %s AND lawyer_id = %s
+#         ''', (case_id, user_id))
+        
+#         # Optionally, log the rejection
+#         print(f"Case ID {case_id} has been rejected by Lawyer ID {user_id}.")
+#         conn.commit()
+#         return jsonify({"success": True, "message": "Case rejected."})
+
+#     else:
+#         return jsonify({"success": False, "message": "Invalid response."}), 400
+
+
+
+
 @lawyer_bp.route('/respond_case', methods=['POST'])
 def respond_case():
     data = request.json
@@ -91,8 +243,6 @@ def respond_case():
             WHERE case_id = %s AND lawyer_id = %s
         ''', (case_id, user_id))
         
-        # Optionally, log the acceptance
-        print(f"Case ID {case_id} has been accepted by Lawyer ID {user_id}.")
         conn.commit()
         return jsonify({"success": True, "message": "Case accepted."})
         
@@ -104,13 +254,13 @@ def respond_case():
             WHERE case_id = %s AND lawyer_id = %s
         ''', (case_id, user_id))
         
-        # Optionally, log the rejection
-        print(f"Case ID {case_id} has been rejected by Lawyer ID {user_id}.")
         conn.commit()
         return jsonify({"success": True, "message": "Case rejected."})
 
     else:
         return jsonify({"success": False, "message": "Invalid response."}), 400
+
+
 
 
 @lawyer_bp.route('/my_cases', methods=['GET'])
@@ -241,3 +391,44 @@ def display_all_judges():
         return render_template('/display_judges.html', judges=judges_list)
 
     return redirect(url_for('user.login'))
+
+
+
+
+@lawyer_bp.route('/change_password_lawyer', methods=['GET', 'POST'])
+def change_password_user():
+    if 'loggedin' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        current_password = request.form['current_password']
+        new_password = request.form['new_password']
+        confirm_new_password = request.form['confirm_new_password']
+
+        if not current_password or not new_password or not confirm_new_password:
+            flash('All fields are required.', 'error')
+            return render_template('change_password_user.html')
+
+        if new_password != confirm_new_password:
+            flash('New passwords do not match.', 'error')
+            return render_template('change_password_user.html')
+
+        user_id = session['user_id']
+        conn = mysql.connection
+        cursor = conn.cursor(MySQLdb.cursors.DictCursor)
+
+        cursor.execute("SELECT password FROM users WHERE id = %s", (user_id,))
+        user = cursor.fetchone()
+
+        if user and check_password_hash(user['password'], current_password):
+            hashed_password = generate_password_hash(new_password)
+            cursor.execute("UPDATE users SET password = %s WHERE id = %s", (hashed_password, user_id))
+            conn.commit()
+            flash('Password changed successfully.', 'success')
+        else:
+            flash('Current password is incorrect.', 'error')
+
+        cursor.close()
+        return render_template('change_password_lawyer.html')
+
+    return render_template('change_password_lawyer.html')

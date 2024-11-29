@@ -11,7 +11,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 <body>
-    {% include 'index_judge.html' %}
+    {% include 'index_admin.html' %}
     <div class="container">
         <h1 class="my-4">Scheduled Events</h1>
         <table class="table table-bordered">
@@ -79,7 +79,7 @@
 
             function loadEvents() {
                 $.ajax({
-                    url: '/judge/api/events',
+                    url: '/admin/api/events_admin',
                     method: 'GET',
                     success: function(events) {
                         eventsData = events; 
@@ -159,7 +159,7 @@
                 if (isConfirmed) {
                     // If the user clicks "Yes" (OK), proceed to finish the event
                     $.ajax({
-                        url: '/judge/api/events/' + eventId,
+                        url: '/admin/api/events_admin/' + eventId,
                         method: 'PUT',
                         contentType: 'application/json',
                         data: JSON.stringify({ status: 'finished' }),
@@ -205,7 +205,7 @@
                     };
 
                     $.ajax({
-                        url: `/judge/api/editevents/${eventId}`, // Pass event ID to backend
+                        url: `/admin/api/editevents_admin/${eventId}`, // Pass event ID to backend
                         method: 'PUT',
                         contentType: 'application/json',
                         data: JSON.stringify(updatedEvent),

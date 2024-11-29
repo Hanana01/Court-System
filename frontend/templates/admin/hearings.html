@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Hearings</title>
+    <link rel="stylesheet" href="../static/styles/admin/add.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script> <!-- For modal -->
+    {% include 'index_admin.html' %}
+
+    <style>
+        .view-icon {
+            color: white;
+            background-color: #c6d0f2 ;
+            margin: 0 5px;
+            font-size: 20px; 
+            padding: 5px 5px; 
+            border-radius: 5px; 
+            border: none; 
+            cursor: pointer; 
+            transition: all 0.3s ease;  
+        }
+
+        .view-icon:hover {
+            background-color: #218838;
+            opacity: 0.9; 
+            transform: translateY(-2px); 
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="container">
+            <h1 class="heading">Case Hearings</h1>
+            
+            <!-- Search Form -->
+            <div class="search-container">
+                <form method="get" action="/hearings">
+                    <input type="text" name="case_number" placeholder="Search by Case Number..." value="{{ request.args.get('case_number') }}" />
+                    <button type="submit">Search</button>
+                </form>
+            </div>
+
+            <!-- Hearings Table -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>Case ID</th>
+                        <th>Hearing Date</th>
+                        <th>Description</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if hearings %}
+                        {% for hearing in hearings %}
+                        <tr>
+                            <td>{{ hearing.case_id }}</td>
+                            <td>{{ hearing.hearing_date }}</td>
+                            <td>{{ hearing.hearing_description[:30] }}{% if hearing.hearing_description|length > 30 %}...{% endif %}</td>
+                            <td>
+                                <!-- View Icon for Modal -->
+                                <button type="button" class="view-icon" data-bs-toggle="modal" data-bs-target="#hearingModal" data-hearing='{{ hearing | tojson }}'>
+                                    👁️
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" style="text-align: center;">No hearings found</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div class="modal fade" id="hearingModal" tabindex="-1" aria-labelledby="hearingModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="hearingModalLabel">Hearing Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Modal Content will be inserted dynamically -->
+                    <p><strong>Case Number:</strong> <span id="modal-case-number"></span></p>
+                    <p><strong>Case ID:</strong> <span id="modal-case-id"></span></p>
+                    <p><strong>Hearing Date:</strong> <span id="modal-hearing-date"></span></p>
+                    <p><strong>Description:</strong> <span id="modal-hearing-description"></span></p>
+                    <p><strong>Highlights:</strong> <span id="modal-highlights"></span></p>
+                    <p><strong>Created At:</strong> <span id="modal-created-at"></span></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // When modal is shown, populate the fields with the data
+        var hearingModal = document.getElementById('hearingModal');
+        hearingModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget; // Button that triggered the modal
+            var hearingData = JSON.parse(button.getAttribute('data-hearing'));
+
+            // Populate modal content
+            document.getElementById('modal-case-id').textContent = hearingData.case_id;
+            document.getElementById('modal-case-number').textContent = hearingData.case_number;  // Added case_number
+            document.getElementById('modal-hearing-date').textContent = hearingData.hearing_date;
+            document.getElementById('modal-hearing-description').textContent = hearingData.hearing_description;
+            document.getElementById('modal-highlights').textContent = hearingData.highlights;
+            document.getElementById('modal-created-at').textContent = hearingData.created_at;
+        });
+    </script>
+</body>
+</html>

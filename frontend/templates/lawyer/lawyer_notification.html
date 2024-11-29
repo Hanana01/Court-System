@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DCCMS - accept/reject cases</title>
+    <link rel="stylesheet" href="../static/styles/admin/add.css" />
+    {% include 'index_lawyer.html' %}
+    <style>
+        .notifications-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .notification1 {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification1 p {
+            margin: 0;
+        }
+
+        
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Notifications</h1>
+        <div class="notifications-container">
+            {% if notifications|length > 0 %}
+            {% for notification in notifications %}
+            <div class="notification1">
+                <p>{{ notification.message }}</p>
+                
+            </div>
+            {% endfor %}
+            
+            {% else %}
+                <p>No notifications found.</p>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Case Details Modal -->
+    <div id="caseModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h1>Case Details</h1>
+            <div id="caseDetails"></div>
+            <a href="javascript:void(0)" class="back-button" onclick="closeModal()">Back to Notifications</a>
+        </div>
+    </div>
+
+    <script>
+        const notifications = {{ notifications|tojson }}; // Convert the notifications array to JSON
+
+    </script>
+</body>
+</html>

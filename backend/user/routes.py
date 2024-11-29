@@ -1,5 +1,7 @@
-from flask import Blueprint, render_template, session,redirect, url_for,jsonify,request,flash
+from flask import Blueprint, render_template, session,redirect, url_for,jsonify,request,flash, session
 from extensions import mysql
+import MySQLdb
+from werkzeug.security import generate_password_hash,check_password_hash
 
 user_bp = Blueprint('user', __name__, template_folder="../../frontend/templates/user")
 
@@ -332,3 +334,42 @@ def view_case(case_number):
 
     return redirect(url_for('login'))  
 
+
+
+@user_bp.route('/change_password_user', methods=['GET', 'POST'])
+def change_password_user():
+    if 'loggedin' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        current_password = request.form['current_password']
+        new_password = request.form['new_password']
+        confirm_new_password = request.form['confirm_new_password']
+
+        if not current_password or not new_password or not confirm_new_password:
+            flash('All fields are required.', 'error')
+            return render_template('change_password_user.html')
+
+        if new_password != confirm_new_password:
+            flash('New passwords do not match.', 'error')
+            return render_template('change_password_user.html')
+
+        user_id = session['user_id']
+        conn = mysql.connection
+        cursor = conn.cursor(MySQLdb.cursors.DictCursor)
+
+        cursor.execute("SELECT password FROM users WHERE id = %s", (user_id,))
+        user = cursor.fetchone()
+
+        if user and check_password_hash(user['password'], current_password):
+            hashed_password = generate_password_hash(new_password)
+            cursor.execute("UPDATE users SET password = %s WHERE id = %s", (hashed_password, user_id))
+            conn.commit()
+            flash('Password changed successfully.', 'success')
+        else:
+            flash('Current password is incorrect.', 'error')
+
+        cursor.close()
+        return render_template('change_password_user.html')
+
+    return render_template('change_password_user.html')

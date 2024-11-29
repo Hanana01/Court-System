@@ -13,10 +13,10 @@
 </head>
 <body>
     <main>
-        {% include 'index_judge.html' %}
+        {% include 'index_admin.html' %}
         <div class="container1" id="content">
             <h1 class="my-4">Calendar</h1>
-            <button id="view-scheduled-events" onclick="window.location.href='/judge/scheduled-events'">View Scheduled Events</button>
+            <button id="view-scheduled-events" onclick="window.location.href='/admin/scheduled_events_admin'">View Scheduled Events</button>
             <div id="calendar"></div>
         </div>
 
@@ -64,7 +64,7 @@
     $('#calendar').fullCalendar({
         events: function(start, end, timezone, callback) {
             $.ajax({
-                url: '/judge/api/events',
+                url: '/admin/api/events_admin',
                 method: 'GET',
                 success: function(events) {
                     events.forEach(event => {
@@ -124,7 +124,7 @@
 
             // Send data to server
             $.ajax({
-                url: '/judge/api/events',
+                url: '/admin/api/events_admin',
                 method: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({
