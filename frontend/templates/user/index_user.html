@@ -139,8 +139,7 @@
           <i class="bx bxs-chevron-down arrow"></i>
         </div>
         <ul class="sub-menu">
-          <li><a class="link-name" href="#">My Cases</a></li>
-          <li><a href="/user/my_cases">View Cases</a></li>
+          <li><a href="/user/my_cases">My Cases</a></li>
           <li><a href="#">Solved Cases</a></li>
         </ul>
       </li>
@@ -163,7 +162,6 @@
           <ul class="sub-menu">
             <li><a href="/user/change_password_user">Change Password</a></li>
             <li><a href="/">Edit Information</a></li>
-            <li><a href="#" id="logout">Logout</a></li>
             
           </ul>
         </li>
@@ -226,7 +224,7 @@
       }
 
       function checkNotifications() {
-        fetch("/lawyer/check_notifications")
+        fetch("/user/check_notifications")
           .then((response) => response.json())
           .then((data) => {
             console.log("Notification check response:", data); // Log the response for debugging

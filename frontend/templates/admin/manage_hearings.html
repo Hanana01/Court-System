@@ -43,18 +43,20 @@
             
             <!-- Search Form -->
             <div class="search-container">
-                <form method="get" action="/hearings">
+                <form method="get" action="{{ url_for('admin.admin_manage_hearings_list') }}">
                     <input type="text" name="case_number" placeholder="Search by Case Number..." value="{{ request.args.get('case_number') }}" />
                     <button type="submit">Search</button>
                 </form>
             </div>
+            
 
             <!-- Hearings Table -->
             <table>
                 <thead>
                     <tr>
-                        <th>Case ID</th>
+                        <th>Case Number</th> <!-- Added Case Number column -->
                         <th>Hearing Date</th>
+                        <th>Hearing highlights</th>
                         <th>Description</th>
                         <th>Actions</th>
                     </tr>
@@ -63,8 +65,9 @@
                     {% if hearings %}
                         {% for hearing in hearings %}
                         <tr>
-                            <td>{{ hearing.case_id }}</td>
+                            <td>{{ hearing.case_number }}</td> <!-- Display case number -->
                             <td>{{ hearing.hearing_date }}</td>
+                            <td>{{ hearing.highlights[:30] }}{% if hearing.hearing_description|length > 30 %}...{% endif %}</td>
                             <td>{{ hearing.hearing_description[:30] }}{% if hearing.hearing_description|length > 30 %}...{% endif %}</td>
                             <td>
                                 <!-- Edit Icon for Modal -->

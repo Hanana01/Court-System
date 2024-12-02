@@ -21,10 +21,7 @@
                     <label for="case_number">Case Number</label>
                 </div>
                 <div class="col-75">
-                    <select id="case_number" name="case_number" required>
-                        <option value="">Select Case Number</option>
-                        <!-- Options populated via AJAX -->
-                    </select>
+                    <input type="text" id="case_number" name="case_number" readonly required>
                 </div>
             </div>
 
@@ -83,65 +80,31 @@
 </main>
 
 <script>
-$(document).ready(function () {
-    // Fetch cases from the server
-    $.ajax({
-        url: '/admin/get_cases',
-        method: 'GET',
-        success: function (response) {
-            if (response.status === 'success') {
-                const cases = response.data;
-                const caseSelect = $('#case_number');
-
-                // Populate the dropdown with case_number
-                cases.forEach(caseItem => {
-                    caseSelect.append(
-                        `<option value="${caseItem.case_number}" data-type="${caseItem.case_type}" data-title="${caseItem.case_title}">
-                            ${caseItem.case_number} - ${caseItem.case_title}
-                        </option>`
-                    );
-                });
-
-                // Add event listener for selection
-                caseSelect.on('change', function () {
-                    const selectedOption = $(this).find(':selected');
-                    $('#case_type').val(selectedOption.data('type'));
-                    $('#case_title').val(selectedOption.data('title'));
-                });
-            }
-        },
-        error: function () {
-            $('#message').html('<p style="color: red;">Failed to load cases. Please try again.</p>');
+    $(document).ready(function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('event_id');
+    
+        if (eventId) {
+            // Fetch case details from backend
+            $.ajax({
+                url: '/admin/get_case_details',
+                method: 'GET',
+                data: { event_id: eventId },
+                success: function (response) {
+                    console.log("Case Details:", response); // Log response data for debugging
+                    // Populate fields with case details
+                    $('#case_number').val(response.case_number);
+                    $('#case_type').val(response.case_type);
+                    $('#case_title').val(response.case_title);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error fetching case details:", error); // Log error for debugging
+                    alert('Failed to fetch case details.');
+                }
+            });
         }
     });
-
-    // Enable dropdown search functionality
-    $('#case_number').select2({
-        placeholder: 'Search for a case number',
-        allowClear: true,
-    });
-
-    // Handle form submission via AJAX
-    $('#add-hearing-form').submit(function (e) {
-        e.preventDefault();
-        $('#message').html('');  // Clear previous messages
-        $.ajax({
-            url: '/admin/add_hearing',
-            method: 'POST',
-            data: $(this).serialize(),
-            success: function (response) {
-                if (response.status === 'success') {
-                    $('#message').html(`<p style="color: green;">${response.message}</p>`);
-                } else {
-                    $('#message').html(`<p style="color: red;">${response.message}</p>`);
-                }
-            },
-            error: function () {
-                $('#message').html('<p style="color: red;">An error occurred. Please try again.</p>');
-            }
-        });
-    });
-});
+    
 </script>
 </body>
 </html>

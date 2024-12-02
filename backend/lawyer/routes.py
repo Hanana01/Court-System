@@ -353,40 +353,88 @@ def display_all_lawyers():
 
 
 
+# @lawyer_bp.route('/all_judges', methods=['GET'])
+# def display_all_judges():
+#     if 'loggedin' in session:
+#         conn = mysql.connection
+#         cursor = conn.cursor()
+
+#         # Query to fetch all judges' details
+#         cursor.execute('''
+#             SELECT id, fullname, username, role, address, contact, email, nic, gender
+#             FROM users 
+#             WHERE role = 'Judge'
+#         ''')
+
+#         judges = cursor.fetchall()
+        
+#         # Structure judges into a list of dictionaries
+#         judges_list = []
+#         for judge in judges:
+#             judges_list.append({
+#                 "id": judge[0],
+#                 "fullname": judge[1],
+#                 "username": judge[2],
+#                 "role": judge[3],
+#                 "address": judge[4],
+#                 "contact": judge[5],
+#                 "email": judge[6],
+#                 "nic": judge[7],
+#                 "gender": judge[8]
+#             })
+            
+#              # Debug statement to print lawyers in the terminal
+#         print("Lawyers fetched from the database:")
+#         for judge in judges_list:
+#             print(judge)
+
+#         return render_template('/display_judges.html', judges=judges_list)
+
+#     return redirect(url_for('user.login'))
+
+
+
+
+
 @lawyer_bp.route('/all_judges', methods=['GET'])
 def display_all_judges():
     if 'loggedin' in session:
         conn = mysql.connection
         cursor = conn.cursor()
 
-        # Query to fetch all judges' details
-        cursor.execute('''
-            SELECT id, fullname, username, role, address, contact, email, nic, gender
-            FROM users 
-            WHERE role = 'Judge'
-        ''')
+        search_query = request.args.get('search', '').strip()
+
+        # Modify the query to fetch Judge based on search input
+        if search_query:
+            cursor.execute('''
+                SELECT id, fullname, username, role, address, contact, email, nic, gender
+                FROM users 
+                WHERE role = 'Judge' AND fullname LIKE %s
+            ''', ('%' + search_query + '%',))
+        else:
+            # Query to fetch all Judges' details if no search query is provided
+            cursor.execute('''
+                SELECT id, fullname, username, role, address, contact, email, nic, gender
+                FROM users 
+                WHERE role = 'Judge'
+            ''')
 
         judges = cursor.fetchall()
         
         # Structure judges into a list of dictionaries
         judges_list = []
-        for judge in judges:
+        for judges in judges:
             judges_list.append({
-                "id": judge[0],
-                "fullname": judge[1],
-                "username": judge[2],
-                "role": judge[3],
-                "address": judge[4],
-                "contact": judge[5],
-                "email": judge[6],
-                "nic": judge[7],
-                "gender": judge[8]
+                "id": judges[0],
+                "fullname": judges[1],
+                "username": judges[2],
+                "role": judges[3],
+                "address": judges[4],
+                "contact": judges[5],
+                "email": judges[6],
+                "nic": judges[7],
+                "gender": judges[8]
             })
-            
-             # Debug statement to print lawyers in the terminal
-        print("Lawyers fetched from the database:")
-        for judge in judges_list:
-            print(judge)
 
         return render_template('/display_judges.html', judges=judges_list)
 
@@ -432,3 +480,130 @@ def change_password_user():
         return render_template('change_password_lawyer.html')
 
     return render_template('change_password_lawyer.html')
+
+
+@lawyer_bp.route('/dashboard', methods=['GET'])
+def lawyer_dashboard():
+    if 'loggedin' in session and session['role'] == 'Lawyer':
+        lawyer_id = session['user_id']
+        cursor = None
+        try:
+            cursor = mysql.connection.cursor()
+
+            # General statistics
+            cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'Public'")
+            total_users = cursor.fetchone()[0]
+
+            cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'Judge'")
+            total_judges = cursor.fetchone()[0]
+
+            cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'Lawyer'")
+            total_lawyers = cursor.fetchone()[0]
+
+            cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'Admin'")
+            total_admins = cursor.fetchone()[0]
+
+            # Lawyer-specific case count
+            cursor.execute("""
+                SELECT COUNT(*) AS case_count 
+                FROM lawyer_notification 
+                WHERE lawyer_id = %s
+            """, (lawyer_id,))
+            case_count = cursor.fetchone()[0]
+
+            # Lawyer-specific unique client count
+            cursor.execute("""
+                SELECT COUNT(DISTINCT client_id) AS client_count 
+                FROM lawyer_notification 
+                WHERE lawyer_id = %s
+            """, (lawyer_id,))
+            client_count = cursor.fetchone()[0]
+
+            return render_template(
+                'lawyer_dashboard.html',
+                total_users=total_users,
+                total_judges=total_judges,
+                total_lawyers=total_lawyers,
+                total_admins=total_admins,
+                case_count=case_count,
+                client_count=client_count
+            )
+        
+        except Exception as e:
+            return jsonify({'status': 'error', 'message': str(e)})
+        
+        finally:
+            if cursor:
+                cursor.close()
+
+    return jsonify({'status': 'error', 'message': 'Unauthorized access'}), 401
+
+@lawyer_bp.route('/case_status_counts', methods=['GET'])
+def case_status_counts():
+    if 'loggedin' in session and session['role'] == 'Lawyer':
+        lawyer_id = session['user_id']
+        conn = mysql.connection
+        cursor = conn.cursor()
+
+        # Query to count cases by their status
+        cursor.execute("""
+            SELECT 
+                status, 
+                COUNT(*) 
+            FROM 
+                lawyer_notification 
+            WHERE 
+                lawyer_id = %s 
+            GROUP BY 
+                status
+        """, (lawyer_id,))
+
+        status_counts = cursor.fetchall()
+
+        # Structure the data
+        status_data = {row[0]: row[1] for row in status_counts}
+
+        # Ensure all statuses are included (default to 0 if missing)
+        all_statuses = ['accepted', 'rejected', 'pending']
+        response_data = {status: status_data.get(status, 0) for status in all_statuses}
+
+        return jsonify(response_data)
+
+    return jsonify({'status': 'error', 'message': 'Unauthorized access'}), 401
+
+@lawyer_bp.route('/case_type_counts', methods=['GET'])
+def get_case_type_counts():
+    if 'loggedin' in session and session['role'] == 'Lawyer':
+        lawyer_id = session['user_id']
+        conn = mysql.connection
+        cursor = conn.cursor()  # No need for DictCursor here
+
+        # Query to fetch the case types and their counts for the logged-in lawyer
+        cursor.execute("""
+            SELECT c.case_type AS case_type, COUNT(*) AS case_count
+            FROM cases c
+            JOIN lawyer_notification ln ON c.id = ln.case_id
+            WHERE ln.lawyer_id = %s
+            GROUP BY c.case_type;
+        """, (lawyer_id,))
+
+        results = cursor.fetchall()
+        cursor.close()
+
+        # Check if results are empty
+        if not results:
+            return jsonify({'error': 'No case types found for this lawyer'}), 404
+
+        # Prepare the data for JSON response
+        case_data = {}
+        for row in results:
+            case_type = row[0]  # The first element in the tuple is case_type
+            case_count = row[1]  # The second element in the tuple is case_count
+            case_data[case_type] = case_count
+
+        return jsonify(case_data)
+
+    return jsonify({'error': 'Unauthorized access'}), 401
+
+
+

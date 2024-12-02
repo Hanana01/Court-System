@@ -237,3 +237,221 @@ def change_password_judge():
         return render_template('change_password_judge.html')
 
     return render_template('change_password_judge.html')
+
+
+
+@judge_bp.route('/dashboard')
+def judge_dashboard():
+    try:
+        cursor = mysql.connection.cursor()
+        
+        # Query to count all users
+        cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'Public'")
+        total_users = cursor.fetchone()[0]
+        
+        # Query to count judges
+        cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'Judge'")
+        total_judges = cursor.fetchone()[0]
+        
+        # Query to count lawyers
+        cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'Lawyer'")
+        total_lawyers = cursor.fetchone()[0]
+
+        # Query to count admins
+        cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'Admin'")
+        total_admins = cursor.fetchone()[0]
+
+          # Query to count cases
+        cursor.execute("SELECT COUNT(*) FROM cases")
+        total_cases = cursor.fetchone()[0]
+
+        # Query to count pending events
+        cursor.execute("SELECT COUNT(*) FROM events")
+        total_pending_events = cursor.fetchone()[0]
+        
+         # Query for event status distribution
+        cursor.execute("""
+            SELECT 
+                SUM(CASE WHEN status = 'scheduled' THEN 1 ELSE 0 END) AS scheduled,
+                SUM(CASE WHEN status = 'finished' THEN 1 ELSE 0 END) AS finished
+            FROM events
+        """)
+        event_status = cursor.fetchone()
+
+        # Query to count cases by type
+        query = """
+        SELECT 
+            SUM(CASE WHEN case_type = 'family' THEN 1 ELSE 0 END) AS family,
+            SUM(CASE WHEN case_type = 'labor' THEN 1 ELSE 0 END) AS labor,
+            SUM(CASE WHEN case_type = 'civil' THEN 1 ELSE 0 END) AS civil,
+            SUM(CASE WHEN case_type = 'criminal' THEN 1 ELSE 0 END) AS criminal
+        FROM cases
+        """
+        cursor.execute(query)
+        case_counts = cursor.fetchone()  # (family, labor, civil, criminal)
+        cursor.close()
+        
+        return render_template('judge_dashboard.html', 
+                               total_users=total_users, 
+                               total_judges=total_judges, 
+                               total_lawyers=total_lawyers,
+                               total_admins=total_admins,
+                                total_cases=total_cases,
+                               total_pending_events=total_pending_events,
+                               event_status=event_status,
+                               case_counts=case_counts)
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
+
+
+
+# fetching for all cases
+@judge_bp.route('/all_cases_judge', methods=['GET'])
+def cases_judge():
+    try:
+        cursor = mysql.connection.cursor()
+
+        # Retrieve case information
+        cursor.execute('''
+            SELECT 
+                c.id AS case_id,
+                c.plaintiff_name,
+                c.defendant_name
+            FROM cases c
+        ''')
+        cases = cursor.fetchall()
+
+        enriched_cases = []
+
+        for case in cases:
+            case_id, plaintiff_username, defendant_username = case
+
+            # Lookup user IDs for plaintiff and defendant based on usernames
+            cursor.execute('SELECT id FROM users WHERE username = %s AND role = "Public"', (plaintiff_username,))
+            plaintiff_client_id = cursor.fetchone()
+            plaintiff_client_id = plaintiff_client_id[0] if plaintiff_client_id else None
+
+            cursor.execute('SELECT id FROM users WHERE username = %s AND role = "Public"', (defendant_username,))
+            defendant_client_id = cursor.fetchone()
+            defendant_client_id = defendant_client_id[0] if defendant_client_id else None
+
+            # Print the mapped client IDs to verify
+            print(f"Plaintiff Client ID for username {plaintiff_username}: {plaintiff_client_id}")
+            print(f"Defendant Client ID for username {defendant_username}: {defendant_client_id}")
+
+            # Fetch Plaintiff's Lawyer
+            cursor.execute('''
+                SELECT u.fullname 
+                FROM lawyer_notification ln 
+                JOIN users u ON ln.lawyer_id = u.id 
+                WHERE ln.case_id = %s
+                AND ln.client_id = %s
+                AND ln.status = 'accepted'
+                AND u.role = 'Lawyer'
+                LIMIT 1
+            ''', (case_id, plaintiff_client_id))
+            plaintiff_lawyer = cursor.fetchone()
+            plaintiff_lawyer = plaintiff_lawyer[0] if plaintiff_lawyer else None
+
+            # Fetch Defendant's Lawyer
+            cursor.execute('''
+                SELECT u.fullname 
+                FROM lawyer_notification ln 
+                JOIN users u ON ln.lawyer_id = u.id 
+                WHERE ln.case_id = %s
+                AND ln.client_id = %s
+                AND ln.status = 'accepted'
+                AND u.role = 'Lawyer'
+                LIMIT 1
+            ''', (case_id, defendant_client_id))
+            defendant_lawyer = cursor.fetchone()
+            defendant_lawyer = defendant_lawyer[0] if defendant_lawyer else None
+
+            # Append enriched case info
+            enriched_cases.append((case_id, plaintiff_username, plaintiff_lawyer, defendant_username, defendant_lawyer))
+
+        # Display enriched cases in terminal
+        print("Enriched Cases with Lawyers:")
+        for case in enriched_cases:
+            print(case)
+
+        cursor.close()
+
+        # Render template with enriched cases
+        return render_template('all_cases_judge.html', cases=enriched_cases)
+    except Exception as e:
+        print("Error:", e)  # Print error details in terminal
+        return jsonify({'status': 'error', 'message': str(e)})
+    
+
+
+
+
+@judge_bp.route('/view_cases/<int:case_id>', methods=['GET'])
+def view_case_judge(case_id):
+    try:
+        cursor = mysql.connection.cursor()
+
+        # Retrieve detailed case information including case_number
+        cursor.execute('''
+            SELECT 
+                c.id AS case_id, 
+                c.case_number,  -- Include the case number column
+                c.case_title, 
+                c.description, 
+                c.case_type, 
+                c.date, 
+                c.plaintiff_name, 
+                c.defendant_name
+            FROM cases c
+            WHERE c.id = %s
+        ''', (case_id,))
+        case = cursor.fetchone()
+
+        if not case:
+            return jsonify({'status': 'error', 'message': 'Case not found'})
+
+        # Retrieve the plaintiff and defendant's lawyer (if any)
+        plaintiff_lawyer = get_lawyer_for_case(cursor, case_id, case[5], 'plaintiff')
+        defendant_lawyer = get_lawyer_for_case(cursor, case_id, case[6], 'defendant')
+
+        # Return case details to the modal, including the case number
+        return jsonify({
+            'case_id': case[0],
+            'case_number': case[1],  # Include the case number
+            'case_title': case[2],
+            'description': case[3],
+            'case_type': case[4],
+            'date': case[5],
+            'plaintiff_name': case[6],
+            'defendant_name': case[7],
+            'plaintiff_lawyer': plaintiff_lawyer,
+            'defendant_lawyer': defendant_lawyer
+        })
+    except Exception as e:
+        print("Error:", e)
+        return jsonify({'status': 'error', 'message': str(e)})
+
+
+def get_lawyer_for_case(cursor, case_id, client_name, client_type):
+    # Get client ID by username (assuming client_name is the username here)
+    cursor.execute('SELECT id FROM users WHERE username = %s AND role = "Public"', (client_name,))
+    client_id = cursor.fetchone()
+    client_id = client_id[0] if client_id else None
+    
+    if not client_id:
+        return 'N/A'  # No client found, return N/A
+
+    # Fetch the lawyer associated with this client for the case
+    cursor.execute('''
+        SELECT u.fullname 
+        FROM lawyer_notification ln
+        JOIN users u ON ln.lawyer_id = u.id
+        WHERE ln.case_id = %s AND ln.client_id = %s AND ln.status = 'accepted'
+        AND u.role = 'Lawyer'
+        LIMIT 1
+    ''', (case_id, client_id))
+    lawyer = cursor.fetchone()
+
+    return lawyer[0] if lawyer else 'N/A'

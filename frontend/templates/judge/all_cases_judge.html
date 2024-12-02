@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DCCMS - All Cases</title>
     <link rel="stylesheet" href="../static/styles/admin/add.css">
-    {% include 'index_admin.html' %}
+    {% include 'index_judge.html' %}
     <style>
         /* Case Modal Styles */
         #caseDetailsModal {
@@ -85,7 +85,7 @@
                         <td>{{ case[4] or 'N/A' }}</td> <!-- Defendant's Lawyer (or 'N/A' if None) -->
                         <td>
                             <button class="view-btn" onclick="openCaseDetailsModal({{ case[0] }})">👁️</button>
-                            <a href="/admin/edit_case/{{ case[0] }}">
+                            <a href="/judge/edit_case/{{ case[0] }}">
                                 <button class="edit-btn">&#9998;</button>
                             </a>
                             <button class="upload-btn" data-id="{{ case[0] }}" onclick="openUploadModal('{{ case[0] }}')">&#128228;</button>
@@ -118,7 +118,7 @@
             <div class="modal-content">
                 <span class="close" onclick="closeUploadModal()">&times;</span>
                 <h2>Upload Document</h2>
-                <form id="uploadForm" action="/admin/upload_document" method="POST" enctype="multipart/form-data">
+                <form id="uploadForm" action="/judge/upload_document" method="POST" enctype="multipart/form-data">
                     <input type="hidden" id="case_id" name="case_id" value="">
                     <label for="file">Choose File:</label>
                     <input type="file" id="file" name="file" required>
@@ -135,7 +135,7 @@
     <script>
         // Open Case Details Modal
         function openCaseDetailsModal(caseId) {
-            fetch(`/admin/view_case/${caseId}`)
+            fetch(`/judge/view_cases/${caseId}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'error') {

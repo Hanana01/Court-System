@@ -320,18 +320,19 @@ def create_database_and_tables():
         # Create database if not exists
         cursor.execute("CREATE DATABASE IF NOT EXISTS districtcourt")
         cursor.execute("USE districtcourt")
-
-        # Create events table with created_at and updated_at columns
+        
+        
         cursor.execute('''CREATE TABLE IF NOT EXISTS events (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            title VARCHAR(255) NOT NULL,
-            event_date DATE NOT NULL,
-            event_time TIME NOT NULL,
-            status VARCHAR(50) DEFAULT 'scheduled',
-            judge_id INT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        )''')
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    event_date DATE NOT NULL,
+    event_time TIME NOT NULL,
+    status ENUM('scheduled', 'finished') NOT NULL,
+    case_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (case_id) REFERENCES cases(id) ON DELETE CASCADE
+)''')
         
         
         cursor.execute(''' CREATE TABLE IF NOT EXISTS users (
@@ -364,17 +365,20 @@ def create_database_and_tables():
         
         
         
-        # Create case_hearings table
+       # Create case_hearings table with the necessary columns
         cursor.execute('''CREATE TABLE IF NOT EXISTS case_hearings (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            case_id INT NOT NULL,
-            hearing_date DATE NOT NULL,
-            hearing_description TEXT NOT NULL,
-            highlights TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (case_id) REFERENCES cases(id)
-        )''')
+    case_id INT NOT NULL,
+    event_id INT NOT NULL,
+    judge VARCHAR(255) NOT NULL,
+    hearing_description TEXT NOT NULL,
+    highlights TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (case_id) REFERENCES cases(id),
+    FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+)''')
         
+
         
         # Create notification table
         cursor.execute(''' CREATE TABLE IF NOT EXISTS notifications (

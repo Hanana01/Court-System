@@ -1,0 +1,186 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../static/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="../static/styles/admin/adminDashboard.css"> 
+    <title>DCCMS - Dashboard</title>
+</head>
+{% include 'index_lawyer.html' %}
+
+<div class="dashboard-container">
+    <div class="stats-summary">
+        <div class="stat-item">
+            <i class='bx bxs-user'></i>
+            <span>Total Public: {{ total_users }}</span>
+        </div>
+        <div class="stat-item">
+            <i class='bx bxs-user-voice'></i>
+            <span>Total Lawyers: {{ total_lawyers }}</span>
+        </div>
+        <div class="stat-item">
+            <i class='bx bxs-briefcase'></i>
+            <span>Total Judges: {{ total_judges }}</span>
+        </div>
+        <div class="stat-item">
+            <i class='bx bxs-shield'></i>
+            <span>Total Admins: {{ total_admins }}</span>
+        </div>
+        <div class="stat-item">
+            <i class='bx bxs-spreadsheet'></i>
+            <span>Your Cases: {{ case_count }}</span>
+        </div>
+        <div class="stat-item">
+            <i class='bx bxs-check-circle'></i>
+            <span>Your Clients: {{ client_count}} </span>
+        </div>
+    </div>
+    
+    <div class="recent-activities">
+        <h3>Case Status Overview</h3>
+        <div class="barchart">
+            <canvas id="caseChart"></canvas>
+        </div>
+        
+    </div>
+
+    <div class="event-status">
+        <h3>Case Type Overview</h3>
+            <div class="chart">
+                <canvas id="caseTypeChart"></canvas>
+            </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const ctx = document.getElementById('caseChart').getContext('2d');
+
+        // Fetch the data from the backend
+        fetch('/lawyer/case_status_counts')
+            .then(response => response.json())
+            .then(data => {
+                // Prepare the data for the chart
+                const labels = ['Accepted', 'Rejected', 'Pending'];
+                const values = [data.accepted, data.rejected, data.pending];
+
+                // Create the bar chart
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Case Status',
+                            data: values,
+                            backgroundColor: [
+                                'rgba(54, 162, 235, 0.6)', // Accepted
+                                'rgba(255, 99, 132, 0.6)', // Rejected
+                                'rgba(255, 206, 86, 0.6)'  // Pending
+                            ],
+                            borderColor: [
+                                'rgba(54, 162, 235, 1)', // Accepted
+                                'rgba(255, 99, 132, 1)', // Rejected
+                                'rgba(255, 206, 86, 1)'  // Pending
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            title: {
+                                display: false,
+                                
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Case Status',
+                                    font: {
+                                        size: 14
+                                    }
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Number of Cases',
+                                    font: {
+                                        size: 14
+                                    }
+                                },
+                                ticks: {
+                                    stepSize: 1, // Increment by 1
+                                    callback: function(value) {
+                                        if (Number.isInteger(value)) {
+                                            return value; // Show only integers
+                                        }
+                                        return null; // Skip non-integer values
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching case status data:', error));
+    });
+ </script>
+   
+    <script>
+  // Fetch the data from your Flask API endpoint
+  fetch('/lawyer/case_type_counts')
+    .then(response => response.json())
+    .then(data => {
+      // Prepare the data for the pie chart
+      const labels = Object.keys(data); // case types (e.g., 'Criminal', 'Civil', etc.)
+      const values = Object.values(data); // case counts (e.g., 5, 10, etc.)
+
+      // Create the pie chart
+      const ctx = document.getElementById('caseTypeChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'pie', // Pie chart
+        data: {
+          labels: labels, // case types
+          datasets: [{
+            label: 'Case Type Distribution',
+            data: values, // case counts
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#FF9F40'], // Random colors for each slice
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            tooltip: {
+              callbacks: {
+                label: function(tooltipItem) {
+                  return tooltipItem.label + ': ' + tooltipItem.raw + ' cases';
+                }
+              }
+            }
+          }
+        }
+      });
+    })
+    .catch(error => console.error('Error fetching data:', error));
+</script>
+
+
+
+
+
+</html>

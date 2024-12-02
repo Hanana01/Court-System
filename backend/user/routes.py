@@ -12,6 +12,52 @@ def user_index():
 from flask import session, jsonify, redirect
 
 
+# @user_bp.route('/lawyers', methods=['GET'])
+# def display_lawyers():
+#     if 'loggedin' in session:
+#         conn = mysql.connection
+#         cursor = conn.cursor()
+
+#         # Get the search query from the request, if any
+#         search_query = request.args.get('search', '').strip()
+
+#         # Modify the query to fetch lawyers based on search input
+#         if search_query:
+#             cursor.execute('''
+#                 SELECT id, fullname, username, role, address, contact, email, nic, gender
+#                 FROM users 
+#                 WHERE role = 'lawyer' AND fullname LIKE %s
+#             ''', ('%' + search_query + '%',))
+#         else:
+#             # Query to fetch all lawyers' details if no search query is provided
+#             cursor.execute('''
+#                 SELECT id, fullname, username, role, address, contact, email, nic, gender
+#                 FROM users 
+#                 WHERE role = 'lawyer'
+#             ''')
+
+#         lawyers = cursor.fetchall()
+        
+#         # Structure lawyers into a list of dictionaries
+#         lawyers_list = []
+#         for lawyer in lawyers:
+#             lawyers_list.append({
+#                 "id": lawyer[0],
+#                 "fullname": lawyer[1],
+#                 "username": lawyer[2],
+#                 "role": lawyer[3],
+#                 "address": lawyer[4],
+#                 "contact": lawyer[5],
+#                 "email": lawyer[6],
+#                 "nic": lawyer[7],
+#                 "gender": lawyer[8]
+#             })
+
+#         return render_template('/lawyers.html', lawyers=lawyers_list, search_query=search_query)
+
+#     return redirect(url_for('user.login'))
+
+
 @user_bp.route('/lawyers', methods=['GET'])
 def display_lawyers():
     if 'loggedin' in session:
@@ -60,18 +106,70 @@ def display_lawyers():
 
 
 
+# @user_bp.route('/judges', methods=['GET'])
+# def display_judges():
+#     if 'loggedin' in session:
+#         conn = mysql.connection
+#         cursor = conn.cursor()
+
+#         # Query to fetch all judges' details
+#         cursor.execute('''
+#             SELECT id, fullname, username, role, address, contact, email, nic, gender
+#             FROM users 
+#             WHERE role = 'Judge'
+#         ''')
+
+#         judges = cursor.fetchall()
+        
+#         # Structure judges into a list of dictionaries
+#         judges_list = []
+#         for judge in judges:
+#             judges_list.append({
+#                 "id": judge[0],
+#                 "fullname": judge[1],
+#                 "username": judge[2],
+#                 "role": judge[3],
+#                 "address": judge[4],
+#                 "contact": judge[5],
+#                 "email": judge[6],
+#                 "nic": judge[7],
+#                 "gender": judge[8]
+#             })
+            
+#              # Debug statement to print lawyers in the terminal
+#         print("Lawyers fetched from the database:")
+#         for judge in judges_list:
+#             print(judge)
+
+#         return render_template('/judges.html', judges=judges_list)
+
+#     return redirect(url_for('user.login'))
+
+
+
 @user_bp.route('/judges', methods=['GET'])
 def display_judges():
     if 'loggedin' in session:
         conn = mysql.connection
         cursor = conn.cursor()
 
-        # Query to fetch all judges' details
-        cursor.execute('''
-            SELECT id, fullname, username, role, address, contact, email, nic, gender
-            FROM users 
-            WHERE role = 'Judge'
-        ''')
+      # Get the search query from the request, if any
+        search_query = request.args.get('search', '').strip()
+
+        # Modify the query to fetch judges based on search input
+        if search_query:
+            cursor.execute('''
+                SELECT id, fullname, username, role, address, contact, email, nic, gender
+                FROM users 
+                WHERE role = 'Judge' AND fullname LIKE %s
+            ''', ('%' + search_query + '%',))
+        else:
+            # Query to fetch all judges' details if no search query is provided
+            cursor.execute('''
+                SELECT id, fullname, username, role, address, contact, email, nic, gender
+                FROM users 
+                WHERE role = 'Judge'
+            ''')
 
         judges = cursor.fetchall()
         
@@ -90,8 +188,8 @@ def display_judges():
                 "gender": judge[8]
             })
             
-             # Debug statement to print lawyers in the terminal
-        print("Lawyers fetched from the database:")
+             # Debug statement to print judge in the terminal
+        print("judges fetched from the database:")
         for judge in judges_list:
             print(judge)
 

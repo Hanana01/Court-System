@@ -83,28 +83,21 @@
         <table>
             <thead>
                 <tr>
-                    <th>ID</th>
+                   
                     <th>Full Name</th>
-                    <th>Username</th>
-                    <th>Role</th>
                     <th>Address</th>
                     <th>Contact</th>
                     <th>Email</th>
-                    <th>NIC</th>
                     <th>Gender</th>
                 </tr>
             </thead>
             <tbody>
                 {% for judge in judges %}
                 <tr>
-                    <td>{{ judge.id }}</td>
                     <td>{{ judge.fullname }}</td>
-                    <td>{{ judge.username }}</td>
-                    <td>{{ judge.role }}</td>
                     <td>{{ judge.address }}</td>
                     <td>{{ judge.contact }}</td>
                     <td>{{ judge.email }}</td>
-                    <td>{{ judge.nic }}</td>
                     <td>{{ judge.gender }}</td>
                 </tr>
                 {% endfor %}

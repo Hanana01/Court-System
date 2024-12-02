@@ -18,6 +18,7 @@
             <thead>
                 <tr>
                     <th>Title</th>
+                    <th>Case Number</th>
                     <th>Date</th>
                     <th>Time</th>
                     <th>Status</th>
@@ -25,15 +26,21 @@
                 </tr>
             </thead>
             <tbody id="events-table-body">
-                <!-- Events will be inserted here by JavaScript -->
+                <!-- Events will be dynamically inserted here -->
             </tbody>
         </table>
 
+
+
+        <!-- Modal for Editing Event -->
         <div id="editEventModal" class="modal">
             <div class="modal-content">
                 <h2>Edit Event</h2>
                 <label for="editEventTitle">Event Title:</label>
                 <input type="text" id="editEventTitle" placeholder="Enter event title"><br><br>
+
+                <label for="editEventCaseNumber">Case Number:</label>
+                <input type="text" id="editEventCaseNumber" placeholder="Enter Case Number"><br><br>
                 
                 <label for="editEventDate">Event Date:</label>
                 <input type="date" id="editEventDate"><br><br>
@@ -63,6 +70,43 @@
             </div>
         </div>
 
+
+        <!-- Modal for Hearing Details -->
+        <div id="hearingModal" class="modal">
+            <div class="modal-content">
+                <h2>Add Hearing Details</h2>
+                <form id="hearingForm">
+                    <div class="form-group row">
+                        <label for="judge" class="col-sm-3 col-form-label">Judge:</label>
+                        <div class="col-sm-9">
+                            <input type="text" id="judge-search" class="form-control" placeholder="Search for Judge" />
+                            <select id="judge" class="form-control mt-2" style="display:none;"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="description" class="col-sm-3 col-form-label">Description:</label>
+                        <div class="col-sm-9">
+                            <textarea id="description" class="form-control" placeholder="Enter description" required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="highlights" class="col-sm-3 col-form-label">Highlights:</label>
+                        <div class="col-sm-9">
+                            <textarea id="highlights" class="form-control" placeholder="Enter highlights" required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="modal-buttons text-right">
+                        <button type="submit" class="btn btn-success">Save Hearing</button>
+                        <button type="button" class="btn btn-secondary" id="closeHearingModalBtn">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Pagination Controls -->
         <div class="pagination-controls">
             <button id="prev-btn" class="btn btn-primary" disabled>Previous</button>
             <span id="page-info"></span>
@@ -72,17 +116,18 @@
 
     <script>
         $(document).ready(function() {
-            const rowsPerPage = 8; 
+            const rowsPerPage = 8;
             let currentPage = 1;
             let totalRows = 0;
             let eventsData = [];
 
+            // Load events from the backend
             function loadEvents() {
                 $.ajax({
                     url: '/admin/api/events_admin',
                     method: 'GET',
                     success: function(events) {
-                        eventsData = events; 
+                        eventsData = events;
                         totalRows = events.length;
                         updateTable();
                         updatePaginationControls();
@@ -93,47 +138,52 @@
                 });
             }
 
+            // Update table rows
             function updateTable() {
-                var tableBody = $('#events-table-body');
-                tableBody.empty(); 
-
+                const tableBody = $('#events-table-body');
+                tableBody.empty();
                 const start = (currentPage - 1) * rowsPerPage;
                 const end = Math.min(start + rowsPerPage, totalRows);
 
                 for (let i = start; i < end; i++) {
                     const event = eventsData[i];
-                    var eventDate = new Date(event.event_date).toDateString();
-                    var eventTime = event.event_time.split(':').slice(0, 2).join(':'); 
-                    var statusClass = event.status === 'finished' ? 'status-finished' : 'status-scheduled';
-                    var row = '<tr>' +
-                        '<td>' + event.title + '</td>' +
-                        '<td>' + eventDate + '</td>' +
-                        '<td>' + eventTime + '</td>' +
-                        '<td class="' + statusClass + '">' + event.status + '</td>' +
-                        '<td>';
+                    const eventDate = new Date(event.event_date).toDateString();
+                    const eventTime = event.event_time.split(':').slice(0, 2).join(':');
+                    const statusClass = event.status === 'finished' ? 'status-finished' : 'status-scheduled';
 
-                    if (event.status !== 'finished') {
-                        row += '<button class="btn btn-success btn-sm finish-btn" data-id="' + event.id + '">Finish</button> ';
-                        row += '<button class="btn btn-primary btn-sm edit-btn" data-id="' + event.id + '">Edit</button> ';
-                    }
-
-                    row += '<button class="btn btn-danger btn-sm delete-btn" data-id="' + event.id + '">Delete</button>' +
-                        '</td>' +
-                        '</tr>';
-                    tableBody.append(row);
+                    tableBody.append(`
+                        <tr>
+                            <td>${event.title}</td>
+                            <td>${event.case_number}</td>
+                            <td>${eventDate}</td>
+                            <td>${eventTime}</td>
+                            <td class="${statusClass}">${event.status}</td>
+                            <td>
+                                ${event.status !== 'finished' ? `
+                                    <button class="btn btn-success btn-sm finish-btn" data-id="${event.id}">Finish</button>
+                                    <button class="btn btn-primary btn-sm edit-btn" data-id="${event.id}">Edit</button>
+                                ` : ''}
+                                <button class="btn btn-danger btn-sm delete-btn" data-id="${event.id}">Delete</button>
+                            </td>
+                        </tr>
+                    `);
                 }
             }
 
+            // Update pagination controls
             function updatePaginationControls() {
                 const totalPages = Math.ceil(totalRows / rowsPerPage);
                 $('#page-info').text(`Page ${currentPage} of ${totalPages}`);
-
                 $('#prev-btn').prop('disabled', currentPage === 1);
                 $('#next-btn').prop('disabled', currentPage === totalPages);
             }
 
-            loadEvents();
+            // Modal close handler
+            $('#closeHearingModalBtn').on('click', function() {
+                $('#hearingModal').hide();
+            });
 
+            // Event handlers for pagination
             $('#next-btn').on('click', function() {
                 if ((currentPage * rowsPerPage) < totalRows) {
                     currentPage++;
@@ -150,94 +200,165 @@
                 }
             });
 
-            $(document).on('click', '.finish-btn', function() {
-                var eventId = $(this).data('id');
-
-                // Show a confirmation prompt
-                var isConfirmed = confirm('Are you sure you want to mark this event as finished?');
-
-                if (isConfirmed) {
-                    // If the user clicks "Yes" (OK), proceed to finish the event
-                    $.ajax({
-                        url: '/admin/api/events_admin/' + eventId,
-                        method: 'PUT',
-                        contentType: 'application/json',
-                        data: JSON.stringify({ status: 'finished' }),
-                        success: function() {
-                            loadEvents();  
-                        },
-                        error: function() {
-                            alert('Failed to finish the event.');
+            // Load judges for selection
+            function loadJudges() {
+                $.ajax({
+                    url: '/admin/get_judges',
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            const judgeSelect = $('#judge');
+                            judgeSelect.empty().show();
+                            response.users.forEach(judge => {
+                                judgeSelect.append(new Option(judge.fullname, judge.fullname));
+                            });
                         }
-                    });
+                    },
+                    error: function() {
+                        alert('Failed to load judges.');
+                    }
+                });
+            }
+
+            // Event handler for saving hearing details
+    $('#hearingForm').on('submit', function(event) {
+        event.preventDefault();
+        const hearingData = {
+            event_id: $('#hearingForm').data('event-id'),
+            judge: $('#judge').val(),
+            description: $('#description').val(),
+            highlights: $('#highlights').val(),
+        };
+
+        $.ajax({
+            url: '/admin/add_hearing',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(hearingData),
+            success: function() {
+                alert('Hearing details saved successfully!');
+                $('#hearingModal').hide();
+                loadEvents(); // Reload events to reflect the new hearing data
+            },
+            error: function() {
+                alert('Failed to save hearing details.');
+            }
+        });
+    });
+
+    // Open hearing modal and load judge options
+    $(document).on('click', '.finish-btn', function() {
+        const eventId = $(this).data('id');
+        
+        // Load the hearing details and check if they exist
+        $.ajax({
+            url: `/admin/api/check_hearing_details/${eventId}`,
+            method: 'GET',
+            success: function(response) {
+                if (response.status === 'success' && response.hearingSaved) {
+                    // If hearing details are saved, allow the user to confirm marking the event as finished
+                    const confirmFinish = confirm('Hearing details are saved. Do you want to mark this event as finished?');
+                    if (confirmFinish) {
+                        // Mark the event as finished
+                        $.ajax({
+                            url: '/admin/api/events_admin',
+                            method: 'PUT',
+                            contentType: 'application/json',
+                            data: JSON.stringify({ id: eventId, status: 'finished' }),
+                            success: function() {
+                                alert('Event marked as finished successfully!');
+                                loadEvents(); // Reload events to reflect changes
+                            },
+                            error: function() {
+                                alert('Failed to update event status.');
+                            }
+                        });
+                    }
+                } else {
+                    // Prompt to save hearing details first
+                    alert('Hearing details must be saved before marking this event as finished.');
+                    // Optionally, open the hearing modal for saving details
+                    $('#hearingForm').data('event-id', eventId);
+                    $('#hearingModal').css('display', 'flex');
+                    loadJudges(); // Load judges for selection
                 }
-            });
+            },
+            error: function() {
+                alert('Failed to verify hearing details.');
+            }
+        });
+    });
 
-            $(document).on('click', '.edit-btn', function() {
-                var eventId = $(this).data('id');
-                var event = eventsData.find(e => e.id === eventId);
-                
-                $('#editEventTitle').val(event.title);
-                
-                // Convert the date to YYYY-MM-DD format
-                var eventDate = new Date(event.event_date);
-                var formattedDate = eventDate.toISOString().split('T')[0];  
-                $('#editEventDate').val(formattedDate);
-                
-                var [hours, minutes] = event.event_time.split(':').slice(0, 2);
-                $('#editEventHour').val(hours);
-                $('#editEventMinute').val(minutes);
+    // Event handler for editing events
+    $('#events-table-body').on('click', '.edit-btn', function() {
+        const eventId = $(this).data('id');
+        const event = eventsData.find(event => event.id === eventId);
 
-                $('#editEventModal').css('display', 'flex');
-                
-                // Save changes event handler
-                $('#saveEditEventBtn').off('click').on('click', function () {
-                    var updatedTitle = $('#editEventTitle').val();
-                    var updatedDate = $('#editEventDate').val();
-                    var updatedHour = $('#editEventHour').val();
-                    var updatedMinute = $('#editEventMinute').val();
-                    var updatedTime = `${updatedHour}:${updatedMinute}`;
+        if (event) {
+            $('#editEventTitle').val(event.title);
+            $('#editEventCaseNumber').val(event.case_number);
+            $('#editEventDate').val(event.event_date);
+            $('#editEventHour').val(event.event_time.split(':')[0]);
+            $('#editEventMinute').val(event.event_time.split(':')[1]);
 
-                    var updatedEvent = {
-                        title: updatedTitle,
-                        event_date: updatedDate,
-                        event_time: updatedTime,
-                    };
+            $('#editEventModal').show();
 
-                    $.ajax({
-                        url: `/admin/api/editevents_admin/${eventId}`, // Pass event ID to backend
-                        method: 'PUT',
-                        contentType: 'application/json',
-                        data: JSON.stringify(updatedEvent),
-                        success: function (response) {
-                            alert('Event updated successfully!');
-                            loadEvents(); // Reload events
-                            $('#editEventModal').hide(); // Hide modal after saving
-                        },
-                        error: function () {
-                            alert('Failed to update event.');
-                        }
-                    });
+            $('#saveEditEventBtn').on('click', function() {
+                const updatedEvent = {
+                    id: event.id,
+                    title: $('#editEventTitle').val(),
+                    case_number: $('#editEventCaseNumber').val(),
+                    event_date: $('#editEventDate').val(),
+                    event_time: `${$('#editEventHour').val()}:${$('#editEventMinute').val()}`,
+                };
+
+                $.ajax({
+                    url: `/admin/api/editevents_admin/${event.id}`,
+                    method: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify(updatedEvent),
+                    success: function() {
+                        alert('Event updated successfully');
+                        loadEvents();
+                        $('#editEventModal').hide();
+                    },
+                    error: function() {
+                        alert('Failed to update event');
+                    }
                 });
             });
-
-            $('#closeEditModalBtn').on('click', function() {
-                $('#editEventModal').hide();
-            });
+        }
+        $('#closeEditModalBtn').on('click', function() {
+            $('#editEventModal').hide();
         });
+    });
 
-        $(document).on('click', '.delete-btn', function() {
-    var eventId = $(this).data('id');
+    // Delete event
+    // Event handler for deleting an event
+$('#events-table-body').on('click', '.delete-btn', function() {
+    const eventId = $(this).data('id');
     
-    var isConfirmed = confirm('Are you sure you want to delete this row?');
-
+    // Show confirmation dialog
+    const isConfirmed = confirm("Are you sure you want to delete this event?");
     if (isConfirmed) {
-        $(this).closest('tr').remove();
-                eventsData = eventsData.filter(event => event.id !== eventId);
-                totalRows = eventsData.length;
-        updatePaginationControls();
-        updateTable();
-    } 
+        // Proceed with the deletion if confirmed
+        $.ajax({
+            url: `/admin/api/deleteevent_admin/${eventId}`,
+            method: 'DELETE',
+            success: function(response) {
+                // On success, show the success message and reload the events
+                alert('Event deleted successfully');
+                loadEvents();  // Reload events after deletion
+            },
+            error: function() {
+                alert('Failed to delete event.');
+            }
+        });
+    }
+});
+
+
+    loadEvents(); // Initial load
 });
     </script>
 </body>

@@ -27,7 +27,31 @@
             transform: translateY(-2px); 
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         }
+        .btn-close {
+            position: absolute; /* Position relative to the modal header */
+            top: 10px; /* Adjust vertical position */
+            right: 10px; /* Adjust horizontal position */
+            background-color: #c6d0f2; /* Button background color */
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.1s ease-in-out;
+        }
+    
+        .btn-close:hover {
+            background-color: #218838; /* Change background color on hover */
+            color: white;
+            transform: scale(1.1); /* Slight enlargement on hover */
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+        }
     </style>
+        
+            
+        
 </head>
 <body>
     <main>
@@ -81,10 +105,14 @@
     <div class="modal fade" id="hearingModal" tabindex="-1" aria-labelledby="hearingModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="hearingModalLabel">Hearing Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header" style="position: relative;">
+                    <h2 class="modal-title" id="hearingModalLabel">Hearing Details</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true" style="color: #000; font-size: 18px; font-weight: bold;">&times;</span>
+                    </button>
                 </div>
+                
+                
                 <div class="modal-body">
                     <!-- Modal Content will be inserted dynamically -->
                     <p><strong>Case Number:</strong> <span id="modal-case-number"></span></p>
@@ -94,9 +122,7 @@
                     <p><strong>Highlights:</strong> <span id="modal-highlights"></span></p>
                     <p><strong>Created At:</strong> <span id="modal-created-at"></span></p>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
+                
             </div>
         </div>
     </div>
