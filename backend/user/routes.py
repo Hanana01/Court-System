@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, session,redirect, url_for,jsonify,request,flash
 from extensions import mysql
+from flask import session, jsonify, redirect
 
 user_bp = Blueprint('user', __name__, template_folder="../../frontend/templates/user")
 
@@ -7,7 +8,40 @@ user_bp = Blueprint('user', __name__, template_folder="../../frontend/templates/
 def user_index():
     return render_template('index_user.html')
 
-from flask import session, jsonify, redirect
+@user_bp.route('/calendar')
+def user_calendar():
+    return render_template('user_calendar.html')
+
+@user_bp.route('/dashboard')
+def user_dashboard():
+    try:
+        cursor = mysql.connection.cursor()
+        
+        # Query to count all users
+        cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'Public'")
+        total_users = cursor.fetchone()[0]
+        
+        # Query to count judges
+        cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'Judge'")
+        total_judges = cursor.fetchone()[0]
+        
+        # Query to count lawyers
+        cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'Lawyer'")
+        total_lawyers = cursor.fetchone()[0]
+
+        # Query to count admins
+        cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'Admin'")
+        total_admins = cursor.fetchone()[0]
+        
+        cursor.close()
+        
+        return render_template('user_dashboard.html', 
+                               total_users=total_users, 
+                               total_judges=total_judges, 
+                               total_lawyers=total_lawyers,
+                               total_admins=total_admins)
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
 
 
 @user_bp.route('/all_notifications', methods=['GET'])

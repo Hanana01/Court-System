@@ -87,9 +87,7 @@
 
   
   .recent-activities,
-  .case-status,
-  .user-activities,
-  .notifications {
+  .event-status {
       background-color: var(--light);
       padding: 20px;
       border-radius: 8px;
@@ -97,12 +95,14 @@
       box-sizing: border-box;
   }
   
-  .case-status .chart {
-      height: 200px;
-      background-color: var(--grey);
-      border-radius: 8px;
-      margin-bottom: 10px;
-  }
+  .event-status .chart {
+    height: 300px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+}
   
   h3 {
       margin-bottom: 10px;

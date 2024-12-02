@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,8 +8,7 @@
     <link rel="stylesheet" href="../static/styles/admin/adminDashboard.css"> 
     <title>DCCMS - Dashboard</title>
 </head>
-
-{% include 'index_admin.html' %}
+{% include 'index_judge.html' %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <div class="dashboard-container">
@@ -38,7 +38,6 @@
             <span>Total Events: {{ total_pending_events }}</span>
         </div>
     </div>
-    
 
     <div class="recent-activities">
         <h3>Case Categories Overview</h3>
@@ -54,8 +53,6 @@
                 <canvas id="eventStatusChart"></canvas>
             </div>
     </div>
-
-    
 </div>
 
 <script>
@@ -191,5 +188,4 @@
         new Chart(caseCtx, caseConfig);
     });
 </script>
-
 </html>

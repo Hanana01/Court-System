@@ -19,6 +19,7 @@ def judge_calendar():
 def scheduled_events():
     return render_template('scheduled_event.html')
 
+
 # Fetch or create events
 @judge_bp.route('/api/events', methods=['GET', 'POST'])
 def events():
@@ -110,3 +111,70 @@ def delete_event(event_id):
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 500
+
+@judge_bp.route('/dashboard')
+def judge_dashboard():
+    try:
+        cursor = mysql.connection.cursor()
+        
+        # Query to count all users
+        cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'Public'")
+        total_users = cursor.fetchone()[0]
+        
+        # Query to count judges
+        cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'Judge'")
+        total_judges = cursor.fetchone()[0]
+        
+        # Query to count lawyers
+        cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'Lawyer'")
+        total_lawyers = cursor.fetchone()[0]
+
+        # Query to count admins
+        cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'Admin'")
+        total_admins = cursor.fetchone()[0]
+
+          # Query to count cases
+        cursor.execute("SELECT COUNT(*) FROM cases")
+        total_cases = cursor.fetchone()[0]
+
+        # Query to count pending events
+        cursor.execute("SELECT COUNT(*) FROM events")
+        total_pending_events = cursor.fetchone()[0]
+        
+         # Query for event status distribution
+        cursor.execute("""
+            SELECT 
+                SUM(CASE WHEN status = 'scheduled' THEN 1 ELSE 0 END) AS scheduled,
+                SUM(CASE WHEN status = 'finished' THEN 1 ELSE 0 END) AS finished
+            FROM events
+        """)
+        event_status = cursor.fetchone()
+
+        # Query to count cases by type
+        query = """
+        SELECT 
+            SUM(CASE WHEN case_type = 'family' THEN 1 ELSE 0 END) AS family,
+            SUM(CASE WHEN case_type = 'labor' THEN 1 ELSE 0 END) AS labor,
+            SUM(CASE WHEN case_type = 'civil' THEN 1 ELSE 0 END) AS civil,
+            SUM(CASE WHEN case_type = 'criminal' THEN 1 ELSE 0 END) AS criminal
+        FROM cases
+        """
+        cursor.execute(query)
+        case_counts = cursor.fetchone()  # (family, labor, civil, criminal)
+        cursor.close()
+        
+        return render_template('judge_dashboard.html', 
+                               total_users=total_users, 
+                               total_judges=total_judges, 
+                               total_lawyers=total_lawyers,
+                               total_admins=total_admins,
+                                total_cases=total_cases,
+                               total_pending_events=total_pending_events,
+                               event_status=event_status,
+                               case_counts=case_counts)
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
+    
+
+   
