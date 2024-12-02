@@ -34,49 +34,153 @@
         </div>
         <div class="stat-item">
             <i class='bx bxs-check-circle'></i>
-            <span>Solved Cases: 180</span>
+            <span>Your Clients: {{ client_count}} </span>
         </div>
     </div>
     
-
     <div class="recent-activities">
-        <h3>Recent Activities</h3>
-        <ul>
-            <li>User John Doe logged in</li>
-            <li>Case #12345 updated</li>
-            <li>New user Jane Smith registered</li>
-        </ul>
-    </div>
-
-    <div class="case-status">
         <h3>Case Status Overview</h3>
-        <div class="chart">[Pie Chart/Bar Chart]</div>
-        <div class="upcoming-dates">
-            <h4>Upcoming Court Dates</h4>
-            <ul>
-                <li>Case #67890 - July 10, 2024</li>
-                <li>Case #54321 - July 15, 2024</li>
-            </ul>
+        <div class="barchart">
+            <canvas id="caseChart"></canvas>
         </div>
+        
     </div>
 
-    <div class="user-activities">
-        <h3>Top Active Lawyers</h3>
-        <ul>
-            <li>Lawyer A - 20 cases</li>
-            <li>Lawyer B - 18 cases</li>
-        </ul>
-
-        <h3>Top Active Judges</h3>
-        <ul>
-            <li>Judge X - 25 cases</li>
-            <li>Judge Y - 22 cases</li>
-        </ul>
+    <div class="event-status">
+        <h3>Case Type Overview</h3>
+            <div class="chart">
+                <canvas id="caseTypeChart"></canvas>
+            </div>
     </div>
 
-    <div class="notifications">
-        <h3>System Notifications</h3>
-        <p>No new notifications</p>
-    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const ctx = document.getElementById('caseChart').getContext('2d');
+
+        // Fetch the data from the backend
+        fetch('/lawyer/case_status_counts')
+            .then(response => response.json())
+            .then(data => {
+                // Prepare the data for the chart
+                const labels = ['Accepted', 'Rejected', 'Pending'];
+                const values = [data.accepted, data.rejected, data.pending];
+
+                // Create the bar chart
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Case Status',
+                            data: values,
+                            backgroundColor: [
+                                'rgba(54, 162, 235, 0.6)', // Accepted
+                                'rgba(255, 99, 132, 0.6)', // Rejected
+                                'rgba(255, 206, 86, 0.6)'  // Pending
+                            ],
+                            borderColor: [
+                                'rgba(54, 162, 235, 1)', // Accepted
+                                'rgba(255, 99, 132, 1)', // Rejected
+                                'rgba(255, 206, 86, 1)'  // Pending
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            title: {
+                                display: false,
+                                
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Case Status',
+                                    font: {
+                                        size: 14
+                                    }
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Number of Cases',
+                                    font: {
+                                        size: 14
+                                    }
+                                },
+                                ticks: {
+                                    stepSize: 1, // Increment by 1
+                                    callback: function(value) {
+                                        if (Number.isInteger(value)) {
+                                            return value; // Show only integers
+                                        }
+                                        return null; // Skip non-integer values
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching case status data:', error));
+    });
+ </script>
+   
+    <script>
+  // Fetch the data from your Flask API endpoint
+  fetch('/lawyer/case_type_counts')
+    .then(response => response.json())
+    .then(data => {
+      // Prepare the data for the pie chart
+      const labels = Object.keys(data); // case types (e.g., 'Criminal', 'Civil', etc.)
+      const values = Object.values(data); // case counts (e.g., 5, 10, etc.)
+
+      // Create the pie chart
+      const ctx = document.getElementById('caseTypeChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'pie', // Pie chart
+        data: {
+          labels: labels, // case types
+          datasets: [{
+            label: 'Case Type Distribution',
+            data: values, // case counts
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#FF9F40'], // Random colors for each slice
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            tooltip: {
+              callbacks: {
+                label: function(tooltipItem) {
+                  return tooltipItem.label + ': ' + tooltipItem.raw + ' cases';
+                }
+              }
+            }
+          }
+        }
+      });
+    })
+    .catch(error => console.error('Error fetching data:', error));
+</script>
+
+
+
+
+
 </html>

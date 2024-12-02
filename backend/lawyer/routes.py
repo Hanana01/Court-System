@@ -383,13 +383,22 @@ def lawyer_dashboard():
             """, (lawyer_id,))
             case_count = cursor.fetchone()[0]
 
+            # Lawyer-specific unique client count
+            cursor.execute("""
+                SELECT COUNT(DISTINCT client_id) AS client_count 
+                FROM lawyer_notification 
+                WHERE lawyer_id = %s
+            """, (lawyer_id,))
+            client_count = cursor.fetchone()[0]
+
             return render_template(
                 'lawyer_dashboard.html',
                 total_users=total_users,
                 total_judges=total_judges,
                 total_lawyers=total_lawyers,
                 total_admins=total_admins,
-                case_count=case_count
+                case_count=case_count,
+                client_count=client_count
             )
         
         except Exception as e:
@@ -400,6 +409,73 @@ def lawyer_dashboard():
                 cursor.close()
 
     return jsonify({'status': 'error', 'message': 'Unauthorized access'}), 401
+
+@lawyer_bp.route('/case_status_counts', methods=['GET'])
+def case_status_counts():
+    if 'loggedin' in session and session['role'] == 'Lawyer':
+        lawyer_id = session['user_id']
+        conn = mysql.connection
+        cursor = conn.cursor()
+
+        # Query to count cases by their status
+        cursor.execute("""
+            SELECT 
+                status, 
+                COUNT(*) 
+            FROM 
+                lawyer_notification 
+            WHERE 
+                lawyer_id = %s 
+            GROUP BY 
+                status
+        """, (lawyer_id,))
+
+        status_counts = cursor.fetchall()
+
+        # Structure the data
+        status_data = {row[0]: row[1] for row in status_counts}
+
+        # Ensure all statuses are included (default to 0 if missing)
+        all_statuses = ['accepted', 'rejected', 'pending']
+        response_data = {status: status_data.get(status, 0) for status in all_statuses}
+
+        return jsonify(response_data)
+
+    return jsonify({'status': 'error', 'message': 'Unauthorized access'}), 401
+
+@lawyer_bp.route('/case_type_counts', methods=['GET'])
+def get_case_type_counts():
+    if 'loggedin' in session and session['role'] == 'Lawyer':
+        lawyer_id = session['user_id']
+        conn = mysql.connection
+        cursor = conn.cursor()  # No need for DictCursor here
+
+        # Query to fetch the case types and their counts for the logged-in lawyer
+        cursor.execute("""
+            SELECT c.case_type AS case_type, COUNT(*) AS case_count
+            FROM cases c
+            JOIN lawyer_notification ln ON c.id = ln.case_id
+            WHERE ln.lawyer_id = %s
+            GROUP BY c.case_type;
+        """, (lawyer_id,))
+
+        results = cursor.fetchall()
+        cursor.close()
+
+        # Check if results are empty
+        if not results:
+            return jsonify({'error': 'No case types found for this lawyer'}), 404
+
+        # Prepare the data for JSON response
+        case_data = {}
+        for row in results:
+            case_type = row[0]  # The first element in the tuple is case_type
+            case_count = row[1]  # The second element in the tuple is case_count
+            case_data[case_type] = case_count
+
+        return jsonify(case_data)
+
+    return jsonify({'error': 'Unauthorized access'}), 401
 
 
 
