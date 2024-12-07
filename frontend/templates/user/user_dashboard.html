@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../static/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="../static/styles/admin/adminDashboard.css"> 
+    <title>DCCMS - Dashboard</title>
+</head>
+{% include 'index_user.html' %}
+
+<div class="dashboard-container">
+    <div class="stats-summary">
+        <div class="stat-item">
+            <i class='bx bxs-user'></i>
+            <span>Total Public: {{ total_users }}</span>
+        </div>
+        <div class="stat-item">
+            <i class='bx bxs-user-voice'></i>
+            <span>Total Lawyers: {{ total_lawyers }}</span>
+        </div>
+        <div class="stat-item">
+            <i class='bx bxs-briefcase'></i>
+            <span>Total Judges: {{ total_judges }}</span>
+        </div>
+        <div class="stat-item">
+            <i class='bx bxs-shield'></i>
+            <span>Total Admins: {{ total_admins }}</span>
+        </div>
+        <div class="stat-item">
+            <i class='bx bxs-spreadsheet'></i>
+            <span>Your Cases: {{ total_cases }}</span>
+        </div>
+        <div class="stat-item">
+            <i class='bx bxs-check-circle'></i>
+            <span>Your Events: {{ total_events}} </span>
+        </div>
+    </div>
+    
+    <div class="recent-activities">
+        <h3>Case Types Overview</h3>
+        <div class="barchart">
+            <canvas id="caseTypeChart"></canvas>
+        </div>
+        
+    </div>
+
+    <div class="event-status">
+        <h3>Event Status Overview</h3>
+            <div class="chart">
+                <canvas id="eventChart"></canvas>
+            </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const caseCtx = document.getElementById('caseTypeChart').getContext('2d');
+
+        // Data for the chart (passed from the backend)
+        const caseData = {
+            labels: ['Family', 'Labor', 'Civil', 'Criminal'],
+            datasets: [{
+                label: '', // Remove the label from the top
+                data: {{ case_counts | safe }}, // Pass the case_counts list from the backend
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.6)', // Family
+                    'rgba(54, 162, 235, 0.6)', // Labor
+                    'rgba(255, 206, 86, 0.6)', // Civil
+                    'rgba(75, 192, 192, 0.6)'  // Criminal
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)', // Family
+                    'rgba(54, 162, 235, 1)', // Labor
+                    'rgba(255, 206, 86, 1)', // Civil
+                    'rgba(75, 192, 192, 1)'  // Criminal
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        // Config for the bar chart
+        const caseConfig = {
+            type: 'bar',
+            data: caseData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false // Remove the legend
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Cases',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        ticks: {
+                            precision: 0 // Ensures no decimal values
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Case Types',
+                            font: {
+                                size: 14
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        // Render the chart
+        new Chart(caseCtx, caseConfig);
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const eventStatusCtx = document.getElementById('eventChart').getContext('2d');
+
+        // Data for the pie chart (passed from the backend)
+        const eventStatusData = {
+            labels: ['Scheduled', 'Finished'],
+            datasets: [{
+                label: 'Event Statuses',
+                data: [{{ scheduled_count }}, {{ finished_count }}], // Backend data
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.6)', // Scheduled
+                    'rgba(75, 192, 192, 0.6)'  // Finished
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)', 
+                    'rgba(75, 192, 192, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        // Config for the pie chart
+        const eventStatusConfig = {
+            type: 'pie',
+            data: eventStatusData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        };
+
+        // Render the chart
+        new Chart(eventStatusCtx, eventStatusConfig);
+    });
+</script>
+</html>

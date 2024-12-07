@@ -1,3 +1,7 @@
+from flask import send_file
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 import os
 import re  # email validation
 from werkzeug.utils import secure_filename
@@ -52,7 +56,7 @@ def upload_document():
         conn.commit()
         cursor.close()
         flash('Document uploaded successfully', 'success')
-        return redirect(url_for('admin.admin_index'))
+        return redirect(url_for('admin.cases'))
     
     flash('File type not allowed', 'error')
     return redirect(url_for('admin.admin_index'))
@@ -287,7 +291,7 @@ def admin_users_list():
 def get_user_details(user_id):
     try:
         cursor = mysql.connection.cursor()
-        cursor.execute('SELECT fullname, username, address, contact, email, nic, gender FROM users WHERE id = %s', (user_id,))
+        cursor.execute('SELECT fullname, username, role, address, contact, email, nic, gender FROM users WHERE id = %s', (user_id,))
         user = cursor.fetchone()
         cursor.close()
 
@@ -296,11 +300,12 @@ def get_user_details(user_id):
                 'status': 'success',
                 'fullname': user[0],
                 'username': user[1],
-                'address': user[2],
-                'contact': user[3],
-                'email': user[4],
-                'nic': user[5],
-                'gender': user[6]
+                'role': user[2],
+                'address': user[3],
+                'contact': user[4],
+                'email': user[5],
+                'nic': user[6],
+                'gender': user[7]
             })
         else:
             return jsonify({'status': 'error', 'message': 'User not found'}), 404
@@ -740,8 +745,6 @@ def get_case_details():
 
 
 
-
-
 @admin_bp.route('/hearings', methods=['GET'])
 def admin_hearings_list():
     # Get case_number from the query parameters
@@ -778,46 +781,6 @@ def admin_hearings_list():
     
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
-
-
-
-# # Route to list and manage hearings
-# @admin_bp.route('/manage_hearings', methods=['GET'])
-# def admin_manage_hearings_list():
-#     case_number = request.args.get('case_number', '')
-
-#     try:
-#         cursor = mysql.connection.cursor()
-
-#         if case_number:
-#             query = '''
-#             SELECT ch.id, ch.case_id, e.event_date AS hearing_date, ch.hearing_description, 
-#                    ch.highlights, ch.created_at, c.case_number
-#             FROM case_hearings ch
-#             JOIN cases c ON ch.case_id = c.id
-#             JOIN events e ON c.id = e.case_id  -- Assuming there is a case_id in the events table
-#             WHERE c.case_number = %s
-#             '''
-#             cursor.execute(query, (case_number,))
-#         else:
-#             query = '''
-#             SELECT ch.id, ch.case_id, e.event_date AS hearing_date, ch.hearing_description, 
-#                    ch.highlights, ch.created_at, c.case_number
-#             FROM case_hearings ch
-#             JOIN cases c ON ch.case_id = c.id
-#             JOIN events e ON c.id = e.case_id  -- Assuming there is a case_id in the events table
-#             '''
-#             cursor.execute(query)
-
-#         # Fetch all hearing data
-#         columns = [col[0] for col in cursor.description]
-#         hearings = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-#         cursor.close()
-#         return render_template('manage_hearings.html', hearings=hearings)
-
-#     except Exception as e:
-#         return jsonify({'status': 'error', 'message': str(e)})
 
 
 
@@ -1187,24 +1150,190 @@ def delete_event_admin(event_id):
 
     
 
-# # Update event status
-# @admin_bp.route('/api/events_admin/<int:event_id>', methods=['PUT'])
-# def update_event_admin(event_id):
-#     db = mysql.connection
-#     cursor = db.cursor()
-#     data = request.json
-#     status = data.get('status')
-#     updated_at = datetime.now()  # Update the timestamp
-    
+
+# @admin_bp.route('/report_case', methods=['GET'])
+# def case_report():
 #     try:
-#         cursor.execute("UPDATE events SET status = %s, updated_at = %s WHERE id = %s", (status, updated_at, event_id))
-#         db.commit()
-#         return jsonify({'message': 'Event updated successfully'})
+#         cursor = mysql.connection.cursor()
+        
+#         # Retrieve filter parameters from the URL query string
+#         case_type_filter = request.args.get('case_type', None)
+#         start_date_filter = request.args.get('start_date', None)
+#         end_date_filter = request.args.get('end_date', None)
+        
+#         # If no filters are provided, do not run the query
+#         if not case_type_filter and not start_date_filter and not end_date_filter:
+#             return render_template('report_case.html', cases=None)
+
+#         # Construct the base query
+#         query = '''
+#             SELECT id, case_title, case_number, date, case_type, plaintiff_name, defendant_name, description 
+#             FROM cases WHERE 1
+#         '''
+#         params = []
+        
+#         # Apply filters dynamically to the query
+#         if case_type_filter and case_type_filter != 'All':
+#             query += " AND case_type LIKE %s"
+#             params.append('%' + case_type_filter + '%')
+#         if start_date_filter:
+#             query += " AND date >= %s"
+#             params.append(start_date_filter)
+#         if end_date_filter:
+#             query += " AND date <= %s"
+#             params.append(end_date_filter)
+        
+#         # Execute the query with dynamic filters
+#         cursor.execute(query, tuple(params))
+#         cases = cursor.fetchall()
+#         cursor.close()
+
+#         # Convert query result to a list of dictionaries for template use
+#         cases_list = [
+#             {
+#                 'case_id': case[0],
+#                 'case_title': case[1],
+#                 'case_number': case[2],
+#                 'case_date': case[3],
+#                 'case_type': case[4],
+#                 'plaintiff_name': case[5],
+#                 'defendant_name': case[6],
+#                 'description': case[7]
+#             }
+#             for case in cases
+#         ]
+
+#         return render_template('report_case.html', cases=cases_list)
+    
 #     except Exception as e:
-#         db.rollback()
-#         return jsonify({'error': str(e)}), 500
+#         return jsonify({'status': 'error', 'message': str(e)})
 
 
+@admin_bp.route('/reports', methods=['GET', 'POST'])
+def generate_report():
+    conn = mysql.connection
+    cursor = conn.cursor(MySQLdb.cursors.DictCursor)
+
+    # Fetch case titles for the dropdown
+    cursor.execute('SELECT DISTINCT case_title FROM cases')
+    cases = cursor.fetchall()
+
+    if request.method == 'POST':
+        report_type = request.form['report_type']
+        start_date = request.form.get('start_date')
+        end_date = request.form.get('end_date')
+        case_title = request.form.get('case_title')
+
+        # Ensure dates are provided for date-based filtering
+        if report_type in ('cases_by_date', 'case_hearing_track', 'case_type_summary') and not (start_date and end_date):
+            flash('Please provide both start and end dates', 'error')
+            return redirect(url_for('admin.generate_report'))
+
+        if report_type == 'cases_by_date':
+            query = '''
+                SELECT id, case_title, case_number, case_type, date
+                FROM cases
+                WHERE date BETWEEN %s AND %s
+            '''
+            params = [start_date, end_date]
+
+            cursor.execute(query, tuple(params))
+            data = cursor.fetchall()
+            columns = ['ID', 'Case Title', 'Case Number', 'Case Type', 'Date']
+
+        elif report_type == 'events_by_status':
+            query = '''
+                SELECT title, event_date, event_time, status
+                FROM events e
+                JOIN cases c ON c.id = e.case_id
+                WHERE e.event_date BETWEEN %s AND %s
+                AND c.case_title = %s
+            '''
+            params = [start_date, end_date, case_title]  # Ensure that start_date and end_date are included in the params
+
+            cursor.execute(query, tuple(params))
+            data = cursor.fetchall()
+            columns = ['Event Title', 'Event Date', 'Event Time', 'Status']
 
 
+        elif report_type == 'lawyer_activity':
+            query = '''
+                SELECT u.fullname AS lawyer_name, COUNT(c.id) AS cases_handled
+                FROM users u
+                LEFT JOIN lawyer_notification ln ON u.id = ln.lawyer_id
+                LEFT JOIN cases c ON ln.case_id = c.id
+                WHERE u.role = 'Lawyer'
+                GROUP BY u.id
+            '''
+            cursor.execute(query)
+            data = cursor.fetchall()
+            columns = ['Lawyer Name', 'Cases Handled']
 
+        elif report_type == 'case_hearing_track':
+            query = '''
+                SELECT 
+                    c.case_title, 
+                    e.event_date AS hearing_date,  
+                    ch.hearing_description, 
+                    ch.highlights
+                FROM case_hearings ch
+                JOIN cases c ON c.id = ch.case_id
+                JOIN events e ON e.id = ch.event_id
+                WHERE e.event_date BETWEEN %s AND %s
+                AND c.case_title = %s
+            '''
+            params = [start_date, end_date, case_title]  # Case title already included here
+
+            cursor.execute(query, tuple(params))
+            data = cursor.fetchall()
+            columns = ['Case Title', 'Hearing Date', 'Hearing Description', 'Hearing Highlights']
+
+        elif report_type == 'case_type_summary':
+            query = '''
+                SELECT 
+                    case_type, 
+                    COUNT(id) AS total_cases
+                FROM cases
+                WHERE date BETWEEN %s AND %s
+                GROUP BY case_type
+            '''
+            cursor.execute(query, (start_date, end_date))
+            data = cursor.fetchall()
+            columns = ['Case Type', 'Total Cases']
+
+        else:
+            flash('Invalid report type selected', 'error')
+            return redirect(url_for('admin.generate_report'))
+
+        # Convert data for rendering
+        report_data = [list(row.values()) for row in data]
+
+        # Render report page with selected report data
+        return render_template(
+            'admin_report.html',
+            report={'columns': columns, 'data': report_data, 'title': report_type.replace('_', ' ').title()},
+            cases=cases,  # Passing available case titles for dropdown
+            report_type=report_type,  # Passing report type to the frontend
+            case_title=case_title,  
+            start_date=start_date,  
+            end_date=end_date  
+        )
+    
+    # Render empty report page initially
+    return render_template('admin_report.html', report=None, cases=cases)
+
+
+@admin_bp.route('/get_case_titles', methods=['GET'])
+def get_case_titles():
+    conn = mysql.connection
+    cursor = conn.cursor(MySQLdb.cursors.DictCursor)
+
+    # Query to fetch all case titles
+    cursor.execute("SELECT id, case_title FROM cases")
+    case_titles = cursor.fetchall()
+
+    # Close the cursor and connection
+    cursor.close()
+
+    # Pass the case titles to the frontend
+    return jsonify({'case_titles': case_titles})

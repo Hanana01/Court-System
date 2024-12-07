@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCCMS - Reports</title>
+    <link rel="stylesheet" href="../static/styles/admin/add.css">
+    {% include 'index_admin.html' %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        select, input, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            font-size: 16px;
+            cursor: pointer;
+            padding: 10px 20px;
+            margin-top: 10px;
+        }
+
+        #generate-btn {
+            background-color: #47b24d;
+            color: white;
+        }
+
+        #generate-btn:hover {
+            background-color: #45a049;
+        }
+
+        #download-pdf {
+            background-color: #007bff; /* Primary Blue */
+            color: white;
+        }
+
+        #cancel-btn {
+            background-color: #dc3545; /* Red */
+            color: white;
+        }
+
+        #download-pdf:hover {
+            background-color: #0056b3;
+        }
+
+        #cancel-btn:hover {
+            background-color: #c82333;
+        }
+
+        .table-container {
+            margin-top: 30px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .empty-message {
+            text-align: center;
+            margin-top: 20px;
+            color: #888;
+        }
+
+        /* Initially hide the case title section */
+        #case_title_section {
+            display: none;
+        }
+
+        #buttons {
+            display: flex;
+            justify-content: space-between; 
+            gap: 10px; 
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="heading">REPORT GENERATION</h1>
+    <div class="container">
+
+        <!-- Report Selection Form -->
+        <form method="POST">
+            <label for="report_type">Select Report Type:</label>
+            <select name="report_type" id="report_type" required>
+                <option value="cases_by_date">Cases by Date</option>
+                <option value="events_by_status">Events by Status</option>
+                <option value="lawyer_activity">Lawyer Activity</option>
+                <option value="case_hearing_track">Case Hearings Track</option>
+                <option value="case_type_summary">Case Type Summary</option>
+            </select>
+
+            <!-- Case Title Section -->
+            <div id="case_title_section">
+                <label for="case_title">Select Case Title:</label>
+                <select name="case_title" id="case_title">
+                    <option value="">Select a case</option>
+                    {% for case in cases %}
+                        <option value="{{ case.case_title }}">{{ case.case_title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <label for="start_date">Start Date:</label>
+            <input type="date" name="start_date" id="start_date" required>
+
+            <label for="end_date">End Date:</label>
+            <input type="date" name="end_date" id="end_date" required>
+
+            <button type="submit" id="generate-btn">Generate Report</button>
+        </form>
+
+        <!-- Display Report -->
+        {% if report %}
+            <div id="report-container">
+                <h2>District Court Case Management System</h2><hr>
+                <p>Report Type : {{ report_type}}</p>
+                {% if case_title %}
+                <p>Case Title : {{ case_title }}</p>
+                {% endif %}
+                <p>Start Date : {{ start_date }}</p>
+                <p>End Date : {{ end_date }}</p>
+                <table>
+                    <thead>
+                        <tr>
+                            {% for column in report.columns %}
+                                <th>{{ column }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in report.data %}
+                            <tr>
+                                {% for cell in row %}
+                                    <td>{{ cell }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div id="buttons">
+            <button id="download-pdf">Download PDF</button>
+            <button id="cancel-btn" onclick="clearForm()">Cancel</button> </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
+    <script>
+        // Get the select element for report type and case title section
+        const reportTypeSelect = document.getElementById('report_type');
+        const caseTitleSection = document.getElementById('case_title_section');
+
+        // Function to toggle case title section visibility based on report type
+        function toggleCaseTitleSection() {
+            if (reportTypeSelect.value === 'events_by_status' || reportTypeSelect.value === 'case_hearing_track') {
+                caseTitleSection.style.display = 'block';  // Show case title section
+            } else {
+                caseTitleSection.style.display = 'none';   // Hide case title section
+            }
+        }
+
+        // Add event listener to report type select
+        reportTypeSelect.addEventListener('change', toggleCaseTitleSection);
+
+        // Call the function initially to ensure the right visibility when the page loads
+        toggleCaseTitleSection();
+
+        // Add functionality to download the report as PDF
+        document.getElementById('download-pdf')?.addEventListener('click', function () {
+            const element = document.getElementById('report-container');
+            const options = {
+                margin:       1,
+                filename:     'DCCMS_report.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().from(element).set(options).save();
+        });
+
+    // Function to clear the form and hide the report and buttons
+    function clearForm() {
+    // Clear form fields
+    document.querySelector('form').reset();
+    // Hide the report container
+    document.getElementById('report-container').style.display = 'none';
+    // Hide the button container
+    document.getElementById('buttons').style.display = 'none';
+}
+    </script>
+</body>
+</html>

@@ -1,77 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DCCMS - All Cases</title>
-    <link rel="stylesheet" href="../static/styles/admin/add.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Case Report</title>
+    <link rel="stylesheet" href="../static/styles/admin/add.css" />
     {% include 'index_admin.html' %}
-</head>
-<body>
+  </head>
+  <body>
     <main>
-        <h1 class="heading">ALL CASES</h1>
-        <div class="container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Case ID</th>
-                        <th>Plaintiff Name</th>
-                        <th>Plaintiff's Lawyer</th>
-                        <th>Defendant Name</th>
-                        <th>Defendant's Lawyer</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for case in cases %}
-                    <tr>
-                        <td>{{ case[0] }}</td> <!-- Case ID -->
-                        <td>{{ case[1] }}</td> <!-- Plaintiff Name -->
-                        <td>{{ case[2] or 'N/A' }}</td> <!-- Plaintiff's Lawyer (or 'N/A' if None) -->
-                        <td>{{ case[3] }}</td> <!-- Defendant Name -->
-                        <td>{{ case[4] or 'N/A' }}</td> <!-- Defendant's Lawyer (or 'N/A' if None) -->
-                        <td>
-                            <button class="view-btn" data-id="{{ case[0] }}">👁️</button>
-                            
-                            <a href="/admin/edit_case/{{ case[0] }}">
-                                <button class="edit-btn">&#9998;</button>
-                            </a>
-                            <button class="upload-btn" data-id="{{ case[0] }}" onclick="openUploadModal('{{ case[0] }}')">&#128228;</button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+      <div class="container">
+        <h1 class="heading">Case Report</h1>
+
+        <!-- Search Form -->
+        <div class="search-container">
+          <form id="searchForm" method="get">
+            <label for="case_type">Case Type:</label>
+            <select id="case_type" name="case_type">
+              <option value="All" {% if request.args.get('case_type') == 'All' %} selected {% endif %}>All Types</option>
+              <option value="Criminal" {% if request.args.get('case_type') == 'Criminal' %} selected {% endif %}>Criminal</option>
+              <option value="Civil" {% if request.args.get('case_type') == 'Civil' %} selected {% endif %}>Civil</option>
+              <option value="Family" {% if request.args.get('case_type') == 'Family' %} selected {% endif %}>Family</option>
+              <option value="Labor" {% if request.args.get('case_type') == 'Labor' %} selected {% endif %}>Labor</option>
+            </select>
+            
+            <label for="start_date">Start Date:</label>
+            <input type="date" id="start_date" name="start_date" value="{{ request.args.get('start_date', '') }}"/>
+            
+            <label for="end_date">End Date:</label>
+            <input type="date" id="end_date" name="end_date" value="{{ request.args.get('end_date', '') }}"/>
+            
+            <button type="submit">Search</button>
+          </form>
         </div>
 
-        <!-- Upload Modal -->
-        <div id="uploadModal" style="display:none;">
-            <div class="modal-content">
-                <span class="close" onclick="closeUploadModal()">&times;</span>
-                <h2>Upload Document</h2>
-                <form id="uploadForm" action="/admin/upload_document" method="POST" enctype="multipart/form-data">
-                    <input type="hidden" id="case_id" name="case_id" value="">
-                    <label for="file">Choose File:</label>
-                    <input type="file" id="file" name="file" required>
-                    <br>
-                    <label for="description">Description:</label>
-                    <textarea id="description" name="description" rows="4" cols="50" required></textarea>
-                    <br>
-                    <button type="submit">Upload</button>
-                </form>
-            </div>
-        </div>
+        <!-- Case Report Table -->
+        {% if cases %}
+        <table>
+          <thead>
+            <tr>
+              <th>Case ID</th>
+              <th>Case Title</th>
+              <th>Case Number</th>
+              <th>Case Type</th>
+              <th>Plaintiff Name</th>
+              <th>Defendant Name</th>
+              <th>Date</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for case in cases %}
+              <tr>
+                <td>{{ case.case_id }}</td>
+                <td>{{ case.case_title }}</td>
+                <td>{{ case.case_number }}</td>
+                <td>{{ case.case_type }}</td>
+                <td>{{ case.plaintiff_name }}</td>
+                <td>{{ case.defendant_name }}</td>
+                <td>{{ case.case_date }}</td>
+                <td>{{ case.description }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+          <p>No cases found</p>
+        {% endif %}
+      </div>
     </main>
-
-    <script>
-        function openUploadModal(caseId) {
-            document.getElementById('case_id').value = caseId;
-            document.getElementById('uploadModal').style.display = 'block';
-        }
-
-        function closeUploadModal() {
-            document.getElementById('uploadModal').style.display = 'none';
-        }
-    </script>
-</body>
+  </body>
 </html>

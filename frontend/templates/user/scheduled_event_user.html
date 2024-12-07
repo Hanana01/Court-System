@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../static/images/favicon.ico" type="image/x-icon">
+    <title>DCCMS - Scheduled Events</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/styles/judge/events.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body>
+    {% include 'index_user.html' %}
+    <div class="container">
+        <h1 class="my-4">Scheduled Events</h1>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Case Number</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="events-table-body">
+                <!-- Events will be dynamically inserted here -->
+            </tbody>
+        </table>
+
+
+
+        <!-- Pagination Controls -->
+        <div class="pagination-controls">
+            <button id="prev-btn" class="btn btn-primary" disabled>Previous</button>
+            <span id="page-info"></span>
+            <button id="next-btn" class="btn btn-primary">Next</button>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            const rowsPerPage = 8;
+            let currentPage = 1;
+            let totalRows = 0;
+            let eventsData = [];
+
+            // Load events from the backend
+            function loadEvents() {
+                $.ajax({
+                    url: '/user/api/events_user',
+                    method: 'GET',
+                    success: function(events) {
+                        eventsData = events;
+                        totalRows = events.length;
+                        updateTable();
+                        updatePaginationControls();
+                    },
+                    error: function() {
+                        alert('Failed to load events.');
+                    }
+                });
+            }
+
+            // Update table rows
+            function updateTable() {
+                const tableBody = $('#events-table-body');
+                tableBody.empty();
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = Math.min(start + rowsPerPage, totalRows);
+
+                for (let i = start; i < end; i++) {
+                    const event = eventsData[i];
+                    const eventDate = new Date(event.event_date).toDateString();
+                    const eventTime = event.event_time.split(':').slice(0, 2).join(':');
+                    const statusClass = event.status === 'finished' ? 'status-finished' : 'status-scheduled';
+
+                    tableBody.append(`
+                        <tr>
+                            <td>${event.title}</td>
+                            <td>${event.case_number}</td>
+                            <td>${eventDate}</td>
+                            <td>${eventTime}</td>
+                            <td class="${statusClass}">${event.status}</td>
+                        </tr>
+                    `);
+                }
+            }
+
+            // Update pagination controls
+            function updatePaginationControls() {
+                const totalPages = Math.ceil(totalRows / rowsPerPage);
+                $('#page-info').text(`Page ${currentPage} of ${totalPages}`);
+                $('#prev-btn').prop('disabled', currentPage === 1);
+                $('#next-btn').prop('disabled', currentPage === totalPages);
+            }
+
+
+            // Event handlers for pagination
+            $('#next-btn').on('click', function() {
+                if ((currentPage * rowsPerPage) < totalRows) {
+                    currentPage++;
+                    updateTable();
+                    updatePaginationControls();
+                }
+            });
+
+            $('#prev-btn').on('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    updateTable();
+                    updatePaginationControls();
+                }
+            });
+
+
+    loadEvents(); // Initial load
+});
+    </script>
+</body>
+</html>

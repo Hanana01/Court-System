@@ -482,7 +482,10 @@ def change_password_user():
     return render_template('change_password_lawyer.html')
 
 
-@lawyer_bp.route('/dashboard', methods=['GET'])
+
+
+
+@lawyer_bp.route('/dashboard_lawyer', methods=['GET'])
 def lawyer_dashboard():
     if 'loggedin' in session and session['role'] == 'Lawyer':
         lawyer_id = session['user_id']
@@ -538,6 +541,8 @@ def lawyer_dashboard():
 
     return jsonify({'status': 'error', 'message': 'Unauthorized access'}), 401
 
+
+
 @lawyer_bp.route('/case_status_counts', methods=['GET'])
 def case_status_counts():
     if 'loggedin' in session and session['role'] == 'Lawyer':
@@ -570,6 +575,8 @@ def case_status_counts():
         return jsonify(response_data)
 
     return jsonify({'status': 'error', 'message': 'Unauthorized access'}), 401
+
+
 
 @lawyer_bp.route('/case_type_counts', methods=['GET'])
 def get_case_type_counts():
@@ -606,4 +613,70 @@ def get_case_type_counts():
     return jsonify({'error': 'Unauthorized access'}), 401
 
 
+@lawyer_bp.route('/scheduled_events_lawyer')
+def scheduled_events_lawyer():
+    return render_template('scheduled_event_lawyer.html')
+
+
+# @lawyer_bp.route('/api/events_lawyer', methods=['GET', 'POST', 'PUT'])
+# def events_lawyer():
+#     db = mysql.connection
+#     cursor = db.cursor()
+    
+#     if request.method == 'GET':
+#         # Fetching events with associated case details
+#         cursor.execute('''SELECT events.id, events.title, events.event_date, events.event_time, events.status, cases.case_number
+#                            FROM events
+#                            LEFT JOIN cases ON events.case_id = cases.id''')
+#         events = cursor.fetchall()
+#         columns = [desc[0] for desc in cursor.description]
+#         events = [dict(zip(columns, row)) for row in events]
+
+#         # Convert timedelta to string
+#         for event in events:
+#             for key, value in event.items():
+#                 if isinstance(value, timedelta):
+#                     event[key] = str(value)
+                    
+#         return jsonify(events)
+    
+
+
+@lawyer_bp.route('/api/events_lawyer', methods=['GET'])
+def events_lawyer():
+    if 'loggedin' in session:
+        user_id = session['user_id']  # Assume user ID is stored in the session
+        conn = mysql.connection
+        cursor = conn.cursor()
+
+        # Query to fetch events related to the lawyer's assigned cases
+        cursor.execute('''
+            SELECT 
+                e.id AS event_id,
+                e.title,
+                e.event_date,
+                e.event_time,
+                e.status,
+                c.case_number,
+                c.case_title
+            FROM events e
+            LEFT JOIN cases c ON e.case_id = c.id
+            LEFT JOIN lawyer_notification ln ON ln.case_id = c.id
+            WHERE ln.lawyer_id = %s
+            ORDER BY e.event_date ASC
+        ''', (user_id,))
+
+        events = cursor.fetchall()
+        columns = [desc[0] for desc in cursor.description]
+        events_data = [dict(zip(columns, row)) for row in events]
+
+        # Convert timedelta to string for JSON compatibility
+        for event in events_data:
+            for key, value in event.items():
+                if isinstance(value, timedelta):
+                    event[key] = str(value)
+
+        return jsonify(events_data)
+
+    return jsonify({'error': 'Unauthorized access'}), 401
 

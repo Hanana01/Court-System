@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th, td {
+        border: 1px solid #000;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Case Report</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Case ID</th>
+          <th>Case Title</th>
+          <th>Case Number</th>
+          <th>Case Type</th>
+          <th>Plaintiff Name</th>
+          <th>Defendant Name</th>
+          <th>Date</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for case in cases %}
+        <tr>
+          <td>{{ case.case_id }}</td>
+          <td>{{ case.case_title }}</td>
+          <td>{{ case.case_number }}</td>
+          <td>{{ case.case_type }}</td>
+          <td>{{ case.plaintiff_name }}</td>
+          <td>{{ case.defendant_name }}</td>
+          <td>{{ case.case_date }}</td>
+          <td>{{ case.description }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </body>
+</html>

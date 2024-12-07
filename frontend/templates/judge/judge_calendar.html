@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,7 +17,7 @@
         {% include 'index_judge.html' %}
         <div class="container1" id="content">
             <h1 class="my-4">Calendar</h1>
-            <button id="view-scheduled-events" onclick="window.location.href='/judge/scheduled-events'">View Scheduled Events</button>
+            <button id="view-scheduled-events" onclick="window.location.href='/judge/scheduled_events'">View Scheduled Events</button>
             <div id="calendar"></div>
         </div>
 
@@ -26,21 +27,23 @@
                 <h2>Add New Event</h2>
                 <label for="eventTitle">Event Title:</label>
                 <input type="text" id="eventTitle" placeholder="Enter event title"><br><br>
-                
+
+                <label for="caseNumber">Case Number:</label>
+                <select id="caseNumber">
+                    <option value="" disabled selected>Select Case Number</option>
+                </select><br><br>
+
                 <label for="eventTime">Event Time:</label>
                 <select id="eventHour">
                     <option value="" disabled selected>Hour</option>
-                    <!-- Loop to generate hour options -->
                     <script>
                         for (let i = 0; i < 24; i++) {
                             document.write('<option value="' + (i < 10 ? '0' : '') + i + '">' + (i < 10 ? '0' : '') + i + '</option>');
                         }
                     </script>
                 </select>
-
                 <select id="eventMinute">
                     <option value="" disabled selected>Minute</option>
-                    <!-- Loop to generate minute options -->
                     <script>
                         for (let i = 0; i < 60; i += 5) {
                             document.write('<option value="' + (i < 10 ? '0' : '') + i + '">' + (i < 10 ? '0' : '') + i + '</option>');
@@ -48,7 +51,6 @@
                     </script>
                 </select><br><br>
 
-                <!-- Buttons aligned to the right -->
                 <div class="modal-buttons">
                     <button class="save-btn" id="saveEventBtn">Save Event</button>
                     <button class="close-btn" id="closeModalBtn">Cancel</button>
@@ -57,104 +59,118 @@
         </div>
 
         <script>
-            $(document).ready(function() {
-    var selectedStart, selectedEnd;
-
-    // Initialize the calendar
-    $('#calendar').fullCalendar({
-        events: function(start, end, timezone, callback) {
-            $.ajax({
-                url: '/judge/api/events',
-                method: 'GET',
-                success: function(events) {
-                    events.forEach(event => {
-                        event.color = event.status === 'finished' ? 'green' : 'blue';
+            $(document).ready(function () {
+                let selectedStart;
+            
+                // Initialize the calendar
+                $('#calendar').fullCalendar({
+                    events: function (start, end, timezone, callback) {
+                        $.ajax({
+                            url: '/judge/api/events',
+                            method: 'GET',
+                            success: function (events) {
+                                events.forEach(event => {
+                                    event.color = event.status === 'finished' ? 'green' : 'blue';
+                                });
+                                callback(events);
+                            },
+                            error: function () {
+                                alert('Failed to load events.');
+                            }
+                        });
+                    },
+                    selectable: true,
+                    selectHelper: true,
+                    select: function (start) {
+                        selectedStart = start;
+                        openModal();
+                    },
+                    editable: true,
+                    eventRender: function (event, element) {
+                        element.find('.fc-title').html(event.start.format('HH:mm') + ' ' + event.title);
+                    }
+                });
+            
+                function openModal() {
+                    $('#content').addClass('blur-background');
+                    $('#eventModal').fadeIn();
+                    loadCaseNumbers(); // Load case numbers when modal opens
+                }
+            
+                function closeModal() {
+                    $('#content').removeClass('blur-background');
+                    $('#eventModal').fadeOut();
+                    $('#eventTitle').val('');
+                    $('#caseNumber').val('');
+                    $('#eventHour').val('');
+                    $('#eventMinute').val('');
+                }
+            
+                $('#saveEventBtn').on('click', function () {
+                    const title = $('#eventTitle').val();
+                    const caseNumber = $('#caseNumber').val();
+                    const hour = $('#eventHour').val();
+                    const minute = $('#eventMinute').val();
+            
+                    if (title && caseNumber && hour && minute) {
+                        const time = `${hour}:${minute}`;
+                        const startDateTime = moment(selectedStart).format('YYYY-MM-DD') + 'T' + time + ':00';
+            
+                        $.ajax({
+                            url: '/judge/api/events',
+                            method: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({
+                                title: title,
+                                case_number: caseNumber,
+                                event_date: moment(selectedStart).format('YYYY-MM-DD'),
+                                event_time: time,
+                                status: 'scheduled'
+                            }),
+                            success: function () {
+                                alert('Event created successfully');
+                                closeModal();
+                                $('#calendar').fullCalendar('refetchEvents');
+                            },
+                            error: function (error) {
+                                alert('Error creating event');
+                                console.log('Error:', error.responseText);
+                            }
+                        });
+                    } else {
+                        alert('Please complete all fields.');
+                    }
+                });
+            
+                $('#closeModalBtn').on('click', closeModal);
+            
+                function loadCaseNumbers() {
+                    $.ajax({
+                        url: '/judge/get_cases',
+                        method: 'GET',
+                        success: function (response) {
+                            if (response.status === 'success') {
+                                const caseSelect = $('#caseNumber');
+                                caseSelect.empty();
+                                caseSelect.append('<option value="" disabled selected>Select Case Number</option>');
+                                response.data.forEach(caseItem => {
+                                    caseSelect.append(
+                                        `<option value="${caseItem.case_number}">${caseItem.case_number} - ${caseItem.case_title}</option>`
+                                    );
+                                });
+                            } else {
+                                alert('Failed to fetch case numbers.');
+                            }
+                        },
+                        error: function () {
+                            alert('Error fetching case numbers.');
+                        }
                     });
-                    callback(events);
-                },
-                error: function() {
-                    alert('Failed to load events.');
                 }
+            
+                $('#eventModal').hide();
             });
-        },
-        selectable: true,
-        selectHelper: true,
-        select: function(start, end) {
-            selectedStart = start;
-            selectedEnd = end;
-            openModal(); // Open the modal when a date is selected
-        },
-        editable: true,
-        eventRender: function(event, element) {
-            element.find('.fc-title').html(event.start.format('HH:mm') + ' ' + event.title);
-        }
-    });
-
-    // Function to open modal and blur the background
-    function openModal() {
-        $('#content').addClass('blur-background'); // Blur the background
-        $('#eventModal').fadeIn(); // Show the modal
-    }
-
-    // Function to close the modal and remove blur
-    function closeModal() {
-        $('#content').removeClass('blur-background'); // Remove blur effect
-        $('#eventModal').fadeOut(); // Hide the modal
-        $('#eventTitle').val(''); // Clear input fields
-        $('#eventHour').val(''); 
-        $('#eventMinute').val('');
-    }
-
-    // Save event logic
-    $('#saveEventBtn').on('click', function() {
-        var title = $('#eventTitle').val();
-        var hour = $('#eventHour').val();
-        var minute = $('#eventMinute').val();
-
-        if (title && hour && minute) {
-            var time = hour + ':' + minute;
-
-            var startDateTime = moment(selectedStart).format('YYYY-MM-DD') + 'T' + time + ':00';
-            var eventData = {
-                title: title,
-                start: startDateTime,
-                end: startDateTime,
-                color: 'blue'
-            };
-
-            // Send data to server
-            $.ajax({
-                url: '/judge/api/events',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    title: title,
-                    event_date: moment(selectedStart).format('YYYY-MM-DD'),
-                    event_time: time,
-                    judge_id: 1,
-                    status: 'scheduled'
-                }),
-                success: function(response) {
-                    alert('Event created successfully');
-                    closeModal(); // Close the modal
-                },
-                error: function(error) {
-                    alert('Error creating event');
-                    console.log('Error response:', error.responseText);
-                }
-            });
-        } else {
-            alert('Please enter both title and time.');
-        }
-    });
-
-    // Close modal button logic
-    $('#closeModalBtn').on('click', closeModal);
-
-    // Initially hide the modal
-    $('#eventModal').hide(); // Ensure the modal is hidden at the start
-});
-
+            
         </script>
     </main>
 </body>

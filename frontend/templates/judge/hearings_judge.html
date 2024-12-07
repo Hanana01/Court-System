@@ -80,7 +80,7 @@
                     {% if hearings %}
                         {% for hearing in hearings %}
                         <tr>
-                            <td>{{ hearing.case_number }}</td>
+                            <td>{{ hearing.case_id }}</td>
                             <td>{{ hearing.hearing_date }}</td>
                             <td>{{ hearing.hearing_description[:30] }}{% if hearing.hearing_description|length > 30 %}...{% endif %}</td>
                             <td>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Case Documents</title>
+        <link rel="stylesheet" href="../static/styles/admin/add.css">
+        {% include 'index_judge.html' %}  
+    </head>
+<body>
+    <main>
+        <h1 class="heading">Case Documents</h1>
+        <div class="container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Document ID</th>
+                        <th>Case Number</th>
+                        <th>Case Title</th>
+                        <th>Document Description</th>
+                        <th>Document</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in documents %}
+                    <tr>
+                        <td>{{ doc[0] }}</td> <!-- Document ID -->
+                        <td>{{ doc[2] }}</td> <!-- Case Number -->
+                        <td>{{ doc[3] }}</td> <!-- Case Title -->
+                        <td>{{ doc[4] }}</td> <!-- Description -->
+                        <td>
+                            <button class="view-btn">
+                                <a href="{{ url_for('judge.view_document_judge', document_id=doc[0]) }}" target="_blank" style="color: inherit; text-decoration: none;">👁️</a>
+                            </button>
+                            <button class="edit-btn">
+                                <a href="{{ url_for('judge.view_document_judge', document_id=doc[0]) }}" download style="color: inherit; text-decoration: none;">📥</a>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+</html>

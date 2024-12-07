@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, request, jsonify, url_for, session, redirect, flash
+import os
+from flask import Blueprint, render_template, request, jsonify, url_for, session, redirect, flash, send_from_directory
 from extensions import mysql
 from datetime import timedelta,datetime
 import MySQLdb
@@ -15,46 +16,110 @@ def judge_calendar():
     return render_template('judge_calendar.html')
 
 # Render scheduled events page
-@judge_bp.route('/scheduled-events')
+@judge_bp.route('/scheduled_events')
 def scheduled_events():
     return render_template('scheduled_event.html')
 
 # Fetch or create events
-@judge_bp.route('/api/events', methods=['GET', 'POST'])
-def events():
+@judge_bp.route('/api/events', methods=['GET', 'POST', 'PUT'])
+def events_admin():
     db = mysql.connection
     cursor = db.cursor()
+    
     if request.method == 'GET':
-        cursor.execute("SELECT * FROM events")
+        # Fetching events with associated case details
+        cursor.execute('''SELECT events.id, events.title, events.event_date, events.event_time, events.status, cases.case_number
+                           FROM events
+                           LEFT JOIN cases ON events.case_id = cases.id''')
         events = cursor.fetchall()
-        # Convert the results to a list of dictionaries and handle timedelta
         columns = [desc[0] for desc in cursor.description]
         events = [dict(zip(columns, row)) for row in events]
+
+        # Convert timedelta to string
         for event in events:
             for key, value in event.items():
                 if isinstance(value, timedelta):
                     event[key] = str(value)
+                    
         return jsonify(events)
     
     elif request.method == 'POST':
+        # Creating a new event
         data = request.json
         title = data.get('title')
+        case_number = data.get('case_number')
         event_date = data.get('event_date')
         event_time = data.get('event_time')
         status = data.get('status', 'scheduled')
-        judge_id = data.get('judge_id')
-        created_at = updated_at = datetime.now()  # Set timestamps
+        created_at = updated_at = datetime.now()
         
         try:
+            # Validate the case number
+            cursor.execute("SELECT id FROM cases WHERE case_number = %s", (case_number,))
+            case = cursor.fetchone()
+            if not case:
+                return jsonify({'error': 'Invalid case number'}), 400
+            
+            case_id = case[0]  # Case ID for the provided case_number
+            
+            # Insert the event
             cursor.execute(
-                "INSERT INTO events (title, event_date, event_time, status, judge_id, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                (title, event_date, event_time, status, judge_id, created_at, updated_at)
+                "INSERT INTO events (title, event_date, event_time, status, case_id, created_at, updated_at) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                (title, event_date, event_time, status, case_id, created_at, updated_at)
             )
             db.commit()
             return jsonify({'message': 'Event created successfully'}), 201
         except Exception as e:
             db.rollback()
             return jsonify({'error': str(e)}), 500
+
+    elif request.method == 'PUT':
+        # Updating the event status to 'finished'
+        data = request.json
+        event_id = data.get('id')
+        status = data.get('status', 'finished')
+        updated_at = datetime.now()
+        
+        try:
+            # Update the event status
+            cursor.execute(
+                "UPDATE events SET status = %s, updated_at = %s WHERE id = %s",
+                (status, updated_at, event_id)
+            )
+            db.commit()
+            return jsonify({'message': 'Event updated successfully'}), 200
+        except Exception as e:
+            db.rollback()
+            return jsonify({'error': str(e)}), 500
+        
+        
+@judge_bp.route('/get_cases', methods=['GET'])
+def get_cases():
+    """
+    Fetch all cases from the database and return them as JSON.
+    """
+    try:
+        cursor = mysql.connection.cursor()
+        query = '''
+        SELECT case_number, case_type, case_title FROM cases
+        '''
+        cursor.execute(query)
+        cases = cursor.fetchall()
+        cursor.close()
+
+        # Log the fetched case numbers to the terminal
+        print("Fetched cases from the database:")
+        for case in cases:
+            print(f"Case Number: {case[0]} - Title: {case[2]}")
+
+        # Format the data as a list of dictionaries
+        cases_list = [{'case_number': row[0], 'case_type': row[1], 'case_title': row[2]} for row in cases]
+        return jsonify({'status': 'success', 'data': cases_list})
+    except Exception as e:
+        print("Error fetching cases:", str(e))
+        return jsonify({'status': 'error', 'message': str(e)})
+
 
 # Edit an event
 @judge_bp.route('/api/editevents/<int:event_id>', methods=['PUT'])
@@ -455,3 +520,91 @@ def get_lawyer_for_case(cursor, case_id, client_name, client_type):
     lawyer = cursor.fetchone()
 
     return lawyer[0] if lawyer else 'N/A'
+
+
+
+# Specify the folder where uploaded files will be stored
+UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')  # Define upload path
+ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx', 'jpg', 'png'}  # Adjust the file types as needed
+
+# Make sure the uploads directory exists
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+
+@judge_bp.route('/case_documents_judge', methods=['GET'])
+def case_documents_judge():
+    try:
+        cursor = mysql.connection.cursor()
+        # Fetch all documents along with case details
+        cursor.execute('''
+            SELECT cd.id, cd.case_id, c.case_number, c.case_title, cd.description, cd.document
+            FROM case_documents cd
+            JOIN cases c ON cd.case_id = c.id
+        ''')
+        documents = cursor.fetchall()
+        cursor.close()
+
+        # Render the template with the documents data
+        return render_template('case_documents_judge.html', documents=documents)
+    
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+    
+
+@judge_bp.route('/view_document/<int:document_id>')
+def view_document_judge(document_id):
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT document FROM case_documents WHERE id = %s", (document_id,))
+    result = cursor.fetchone()
+    cursor.close()
+
+    if result:
+        document_path = result[0]  # Get file path from database
+        filename = os.path.basename(document_path)  # Extract the filename from the path
+        return send_from_directory(directory=UPLOAD_FOLDER, path=filename, as_attachment=False)
+    else:
+        flash('Document not found', 'error')
+        return redirect(url_for('admin.cases'))
+    
+    
+@judge_bp.route('/hearings', methods=['GET'])
+def judge_hearings_list():
+    # Get case_number from the query parameters
+    case_number = request.args.get('case_number', '')  # Adjusted to use 'case_number'
+
+    try:
+        cursor = mysql.connection.cursor()
+
+        # If case_number is provided, filter the hearings
+        if case_number:
+            query = '''
+            SELECT ch.id, ch.case_id, c.case_number, ch.hearing_description, ch.highlights, e.event_date AS hearing_date, ch.created_at
+            FROM case_hearings ch
+            JOIN cases c ON ch.case_id = c.id
+            JOIN events e ON c.id = e.case_id  -- Assuming there's a case_id column in the events table
+            WHERE c.case_number = %s
+            '''
+            cursor.execute(query, (case_number,))
+        else:
+            query = '''
+            SELECT ch.id, ch.case_id, c.case_number, ch.hearing_description, ch.highlights, e.event_date AS hearing_date, ch.created_at
+            FROM case_hearings ch
+            JOIN cases c ON ch.case_id = c.id
+            JOIN events e ON c.id = e.case_id  -- Assuming there's a case_id column in the events table
+            '''
+            cursor.execute(query)
+        
+        # Fetch all hearing data
+        columns = [col[0] for col in cursor.description]
+        hearings = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        cursor.close()
+        return render_template('hearings_judge.html', hearings=hearings)
+    
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
