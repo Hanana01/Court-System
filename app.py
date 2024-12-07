@@ -1,6 +1,3 @@
-
-
-
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -12,17 +9,39 @@ from extensions import mysql
 import MySQLdb
 import os
 from datetime import datetime
+from flask_mail import Mail, Message  # Ensure this is imported once
+from itsdangerous import URLSafeTimedSerializer
 
+
+# Initialize Flask app
 app = Flask(__name__, template_folder="frontend/templates", static_folder="frontend/static")
-
-# Secret key for the flash message
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
-# MySQL configurations
+# Configure MySQL
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
 app.config['MYSQL_DB'] = 'districtcourt'
+
+# Set up Flask-Mail
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'jasar9866@gmail.com'
+app.config['MAIL_PASSWORD'] = 'thufvpkxepavpwqw'
+app.config['MAIL_DEFAULT_SENDER'] = 'jasar9866@gmail.com'
+
+mail = Mail(app)  # Initialize mail once after app configuration
+
+# Serializer for generating tokens
+serializer = URLSafeTimedSerializer(app.secret_key)
+
+def send_verification_email(email, username):
+    token = serializer.dumps(email, salt='email-verification-salt')
+    verify_url = url_for('verify_email', token=token, _external=True)
+    msg = Message('Verify Your Email', sender='jasar9866@gmail.com', recipients=[email])
+    msg.body = f'Hi {username}, please verify your email by clicking the link: {verify_url}'
+    mail.send(msg)
 
 # File upload configurations
 UPLOAD_FOLDER = 'uploads/'
@@ -120,7 +139,8 @@ def create_database_and_tables():
             contact VARCHAR(20),
             email VARCHAR(100),
             nic VARCHAR(20),
-            gender ENUM('male', 'female', 'other')    
+            gender ENUM('male', 'female', 'other'),
+            email_verified BOOLEAN DEFAULT FALSE    
         )''')
         
        # Create case_hearings table with the necessary columns
@@ -180,9 +200,9 @@ def create_database_and_tables():
             # Use werkzeug.security to hash the password before inserting
             hashed_password = generate_password_hash('1234')  # Replace 'admin_password' with your desired password
             cursor.execute('''
-                INSERT INTO users (fullname, username, role, password)
-                VALUES (%s, %s, %s, %s)
-            ''', ('Super Admin', 'default_admin', 'Admin', hashed_password))
+                INSERT INTO users (fullname, username, role,email_verified, password)
+                VALUES (%s, %s, %s, %s, %s)
+            ''', ('Super Admin', 'default_admin', 'Admin', 1, hashed_password))
 
         db.commit()
 
@@ -197,6 +217,56 @@ def landing_page():
     return render_template('pre_index.html')
 
 
+# @app.route('/verify_email/<token>', methods=['GET'])
+# def verify_email(token):
+#     try:
+#         email = serializer.loads(token, salt='email-verification-salt', max_age=3600)  # Token valid for 1 hour
+#     except Exception:
+#         flash('The verification link is invalid or has expired.', 'danger')
+#         return redirect(url_for('login'))
+
+#     conn = mysql.connection
+#     cursor = conn.cursor(MySQLdb.cursors.DictCursor)
+#     cursor.execute("UPDATE users SET email_verified = TRUE WHERE email = %s", (email,))
+#     conn.commit()
+
+#     flash('Your email has been verified! You can now log in.', 'success')
+#     return redirect(url_for('login'))
+
+@app.route('/verify_email/<token>', methods=['GET'])
+def verify_email(token):
+    try:
+        email = serializer.loads(token, salt='email-verification-salt', max_age=3600)  # Token valid for 1 hour
+    except Exception:
+        flash('The verification link is invalid or has expired.', 'danger')
+        return redirect(url_for('login'))
+
+    conn = mysql.connection
+    cursor = conn.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute("UPDATE users SET email_verified = TRUE WHERE email = %s", (email,))
+    conn.commit()
+
+    flash('Your email has been verified! You can now log in.', 'success')
+
+    # Inline JavaScript to redirect after 5 seconds
+    return '''
+        <html>
+            <head>
+                <script type="text/javascript">
+                    setTimeout(function() {
+                        window.location.href = "{{ url_for('login') }}";
+                    }, 5000);  // Redirect after 5 seconds
+                </script>
+            </head>
+            <body>
+                <h1>Your email has been successfully verified!</h1>
+                <p>You will be redirected to the login page shortly...</p>
+            </body>
+        </html>
+    '''
+
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     session.clear()
@@ -205,22 +275,22 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        # Connect to the database
         conn = mysql.connection
         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
-
-        # Query to fetch user details by username
         cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
         user = cursor.fetchone()
 
         if user and check_password_hash(user['password'], password):
-            # Set session variables
+            if not user['email_verified']:
+                return jsonify({'status': 'error', 'message': 'Please verify your email before logging in.'})
+
+            # Set session variables and redirect based on role
             session['loggedin'] = True
             session['user_id'] = user['id']
             session['username'] = user['username']
             session['role'] = user['role']
 
-            # Redirect based on user role
+            # Redirect logic
             if user['role'] == 'Admin':
                 return jsonify({'status': 'success', 'message': 'Login successful! Redirecting...', 'redirect_url': url_for('admin.admin_index')})
             elif user['role'] == 'Judge':
@@ -230,8 +300,7 @@ def login():
             elif user['role'] == 'Public':
                 return jsonify({'status': 'success', 'message': 'Login successful! Redirecting...', 'redirect_url': url_for('user.user_index')})
         else:
-            # Flash error message for invalid login
-            return jsonify({'status': 'error', 'message': 'Invalid username or password'})
+            return jsonify({'status': 'error', 'message': 'Invalid username or password.'})
 
     return render_template('login.html')
 
@@ -279,4 +348,239 @@ if __name__ == '__main__':
     # Initialize the database before running the app
     create_database_and_tables()
     app.run(debug=True)
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory
+# from werkzeug.utils import secure_filename
+# from werkzeug.security import check_password_hash, generate_password_hash
+# from backend.user.routes import user_bp
+# from backend.admin.routes import admin_bp
+# from backend.lawyer.routes import lawyer_bp
+# from backend.judge.routes import judge_bp
+# from extensions import mysql
+# import MySQLdb
+# import os
+# from datetime import datetime
+# from flask_mail import Mail, Message  # Ensure this is imported once
+# from itsdangerous import URLSafeTimedSerializer
+
+# # Initialize Flask app
+# app = Flask(__name__, template_folder="frontend/templates", static_folder="frontend/static")
+# app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+
+# # Configure MySQL
+# app.config['MYSQL_HOST'] = 'localhost'
+# app.config['MYSQL_USER'] = 'root'
+# app.config['MYSQL_PASSWORD'] = ''
+# app.config['MYSQL_DB'] = 'districtcourt'
+
+# # Set up Flask-Mail
+# app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+# app.config['MAIL_PORT'] = 587
+# app.config['MAIL_USE_TLS'] = True
+# app.config['MAIL_USERNAME'] = 'jasar9866@gmail.com'
+# app.config['MAIL_PASSWORD'] = 'thufvpkxepavpwqw'
+# app.config['MAIL_DEFAULT_SENDER'] = 'jasar9866@gmail.com'
+
+# mail = Mail(app)  # Initialize mail once after app configuration
+
+# # Serializer for generating tokens
+# serializer = URLSafeTimedSerializer(app.secret_key)
+
+# def send_verification_email(email, username):
+#     token = serializer.dumps(email, salt='email-verification-salt')
+#     verify_url = url_for('verify_email', token=token, _external=True)
+#     msg = Message('Verify Your Email', sender='jasar9866@gmail.com', recipients=[email])
+#     msg.body = f'Hi {username}, please verify your email by clicking the link: {verify_url}'
+#     mail.send(msg)
+
+# # Rest of the code...
+
+
+# # File upload configurations
+# UPLOAD_FOLDER = 'uploads/'
+# ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'docx'}
+# app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# # Ensure the upload folder exists
+# if not os.path.exists(UPLOAD_FOLDER):
+#     os.makedirs(UPLOAD_FOLDER)
+
+# # Initialize MySQL
+# mysql.init_app(app)
+
+
+# def create_database_and_tables():
+#     db = None
+#     try:
+#         db = MySQLdb.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'],
+#                              passwd=app.config['MYSQL_PASSWORD'])
+#         cursor = db.cursor()
+        
+#         # Create database if not exists
+#         cursor.execute("CREATE DATABASE IF NOT EXISTS districtcourt")
+#         cursor.execute("USE districtcourt")
+        
+        
+        
+#         cursor.execute(''' CREATE TABLE IF NOT EXISTS users (
+#             id INT AUTO_INCREMENT PRIMARY KEY,
+#             fullname VARCHAR(255) NOT NULL,
+#             username VARCHAR(100) NOT NULL UNIQUE,
+#             role ENUM('Admin', 'Judge', 'Lawyer', 'Public') NOT NULL,
+#             password VARCHAR(255) NOT NULL,
+#             address VARCHAR(255),
+#             contact VARCHAR(20),
+#             email VARCHAR(100),
+#             nic VARCHAR(20),
+#             gender ENUM('male', 'female', 'other'),
+#             email_verified BOOLEAN DEFAULT FALSE    
+#         )''')
+        
+
+#         # Insert default admin user if it doesn't exist
+#         cursor.execute('SELECT * FROM users WHERE username = %s', ('admin',))
+#         admin_user = cursor.fetchone()
+
+#         if not admin_user:  # Check if the admin user already exists
+#             # Use werkzeug.security to hash the password before inserting
+#             hashed_password = generate_password_hash('1234')  # Replace 'admin_password' with your desired password
+#             cursor.execute('''
+#                 INSERT INTO users (fullname, username, role, email_verified, password)
+#                 VALUES (%s, %s, %s, %s)
+#             ''', ('Super Admin', 'default_admin', 'Admin', 1, hashed_password))
+
+#         db.commit()
+
+#     except MySQLdb.Error as err:
+#         print(f"Error: {err}")
+#     finally:
+#         if db:
+#             db.close()
+
+# @app.route('/')
+# def landing_page():
+#     return render_template('pre_index.html')
+
+# @app.route('/verify_email/<token>', methods=['GET'])
+# def verify_email(token):
+#     try:
+#         email = serializer.loads(token, salt='email-verification-salt', max_age=3600)  # Token valid for 1 hour
+#     except Exception:
+#         flash('The verification link is invalid or has expired.', 'danger')
+#         return redirect(url_for('login'))
+
+#     conn = mysql.connection
+#     cursor = conn.cursor(MySQLdb.cursors.DictCursor)
+#     cursor.execute("UPDATE users SET email_verified = TRUE WHERE email = %s", (email,))
+#     conn.commit()
+
+#     flash('Your email has been verified! You can now log in.', 'success')
+#     return redirect(url_for('login'))
+
+
+
+# @app.route('/login', methods=['GET', 'POST'])
+# def login():
+#     session.clear()
+
+#     if request.method == 'POST':
+#         username = request.form['username']
+#         password = request.form['password']
+
+#         conn = mysql.connection
+#         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
+#         cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+#         user = cursor.fetchone()
+
+#         if user and check_password_hash(user['password'], password):
+#             if not user['email_verified']:
+#                 return jsonify({'status': 'error', 'message': 'Please verify your email before logging in.'})
+
+#             # Set session variables and redirect based on role
+#             session['loggedin'] = True
+#             session['user_id'] = user['id']
+#             session['username'] = user['username']
+#             session['role'] = user['role']
+
+#             # Redirect logic
+#             if user['role'] == 'Admin':
+#                 return jsonify({'status': 'success', 'message': 'Login successful! Redirecting...', 'redirect_url': url_for('admin.admin_index')})
+#             elif user['role'] == 'Judge':
+#                 return jsonify({'status': 'success', 'message': 'Login successful! Redirecting...', 'redirect_url': url_for('judge.judge_index')})
+#             elif user['role'] == 'Lawyer':
+#                 return jsonify({'status': 'success', 'message': 'Login successful! Redirecting...', 'redirect_url': url_for('lawyer.lawyer_index')})
+#             elif user['role'] == 'Public':
+#                 return jsonify({'status': 'success', 'message': 'Login successful! Redirecting...', 'redirect_url': url_for('user.user_index')})
+#         else:
+#             return jsonify({'status': 'error', 'message': 'Invalid username or password.'})
+
+#     return render_template('login.html')
+
+
+
+
+# @app.route('/profile')
+# def profile():
+#     if 'loggedin' in session:
+#         username = session['username']
+        
+#         conn = mysql.connection
+#         cursor = conn.cursor(MySQLdb.cursors.DictCursor)
+#         cursor.execute("SELECT fullname, username, role, address, contact, email, nic, gender FROM users WHERE username = %s", (username,))
+#         profile_info = cursor.fetchone()
+
+#         if profile_info:
+#             return {
+#                 'status': 'success',
+#                 'data': profile_info
+#             }
+#         else:
+#             return {
+#                 'status': 'error',
+#                 'message': 'Profile not found'
+#             }
+#     return {
+#         'status': 'error',
+#         'message': 'User not logged in'
+#     }
+
+# @app.route('/logout', methods=['POST'])
+# def logout():
+#     session.clear()  # Clear session data
+#     return jsonify({'status': 'success', 'message': 'Logged out successfully'})
+
+
+
+
+
+
+# # Register the blueprints
+# app.register_blueprint(user_bp, url_prefix='/user')
+# app.register_blueprint(admin_bp, url_prefix='/admin')
+# app.register_blueprint(lawyer_bp, url_prefix='/lawyer')
+# app.register_blueprint(judge_bp, url_prefix='/judge')
+
+# if __name__ == '__main__':
+#     # Initialize the database before running the app
+#     create_database_and_tables()
+#     app.run(debug=True)
     

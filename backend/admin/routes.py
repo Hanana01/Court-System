@@ -1,3 +1,4 @@
+
 from flask import send_file
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
@@ -7,9 +8,13 @@ import re  # email validation
 from werkzeug.utils import secure_filename
 from extensions import mysql
 import MySQLdb
-from datetime import timedelta,datetime
-from werkzeug.security import generate_password_hash,check_password_hash
+from datetime import timedelta, datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for, send_from_directory, session
+from utils import send_verification_email  # Import from the new utils module
+from flask_mail import Message
+from utils import send_verification_email 
+
 
 admin_bp = Blueprint('admin', __name__, template_folder="../../frontend/templates/admin")
 
@@ -185,6 +190,7 @@ def change_password_admin():
 
 
 
+
 @admin_bp.route('/add_user', methods=['GET', 'POST'])
 def admin_addUser():
     if request.method == 'POST':
@@ -213,7 +219,7 @@ def admin_addUser():
             # Validate unique email
             cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
             if cursor.fetchone():
-                return jsonify({'status': 'error', 'message': 'Email already exists. Please try again with new email'})
+                return jsonify({'status': 'error', 'message': 'Email already exists. Please try again with a new email.'})
 
             # Validate unique username
             cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
@@ -234,19 +240,24 @@ def admin_addUser():
             password_hash = generate_password_hash(password)
 
             # Insert new user if all validations pass
-            cursor.execute('''
-                INSERT INTO users (fullname, username, role, password, address, contact, email, nic, gender)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            cursor.execute(''' 
+                INSERT INTO users (fullname, username, role, password, address, contact, email, nic, gender, email_verified)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 0)
             ''', (fullname, username, role, password_hash, address, contact, email, nic, gender))
 
             mysql.connection.commit()
+
+            # Send verification email
+            send_verification_email(email, username)
+
             cursor.close()
-            return jsonify({'status': 'success', 'message': 'User added successfully!'})
+            return jsonify({'status': 'success', 'message': 'User added successfully! Verification email sent.'})
 
         except Exception as e:
             return jsonify({'status': 'error', 'message': str(e)})
 
     return render_template('add_user.html')
+
 
 
 
@@ -1148,65 +1159,6 @@ def delete_event_admin(event_id):
         db.rollback()
         return jsonify({'error': str(e)}), 500
 
-    
-
-
-# @admin_bp.route('/report_case', methods=['GET'])
-# def case_report():
-#     try:
-#         cursor = mysql.connection.cursor()
-        
-#         # Retrieve filter parameters from the URL query string
-#         case_type_filter = request.args.get('case_type', None)
-#         start_date_filter = request.args.get('start_date', None)
-#         end_date_filter = request.args.get('end_date', None)
-        
-#         # If no filters are provided, do not run the query
-#         if not case_type_filter and not start_date_filter and not end_date_filter:
-#             return render_template('report_case.html', cases=None)
-
-#         # Construct the base query
-#         query = '''
-#             SELECT id, case_title, case_number, date, case_type, plaintiff_name, defendant_name, description 
-#             FROM cases WHERE 1
-#         '''
-#         params = []
-        
-#         # Apply filters dynamically to the query
-#         if case_type_filter and case_type_filter != 'All':
-#             query += " AND case_type LIKE %s"
-#             params.append('%' + case_type_filter + '%')
-#         if start_date_filter:
-#             query += " AND date >= %s"
-#             params.append(start_date_filter)
-#         if end_date_filter:
-#             query += " AND date <= %s"
-#             params.append(end_date_filter)
-        
-#         # Execute the query with dynamic filters
-#         cursor.execute(query, tuple(params))
-#         cases = cursor.fetchall()
-#         cursor.close()
-
-#         # Convert query result to a list of dictionaries for template use
-#         cases_list = [
-#             {
-#                 'case_id': case[0],
-#                 'case_title': case[1],
-#                 'case_number': case[2],
-#                 'case_date': case[3],
-#                 'case_type': case[4],
-#                 'plaintiff_name': case[5],
-#                 'defendant_name': case[6],
-#                 'description': case[7]
-#             }
-#             for case in cases
-#         ]
-
-#         return render_template('report_case.html', cases=cases_list)
-    
-#     except Exception as e:
-#         return jsonify({'status': 'error', 'message': str(e)})
 
 
 @admin_bp.route('/reports', methods=['GET', 'POST'])
@@ -1337,3 +1289,4 @@ def get_case_titles():
 
     # Pass the case titles to the frontend
     return jsonify({'case_titles': case_titles})
+
